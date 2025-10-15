@@ -1,4 +1,28 @@
-### Verdict (short)
+### Tech stack:
+
+**Frontend:**
+- Next.js
+- TypeScript
+- React
+- Tailwind CSS
+- shadcn/ui
+
+**Backend:**
+- Supabase (Auth, Postgres with RLS)
+- Stripe (Billing)
+- Node.js (via Next.js API routes)
+- spotify-web-api-node (for Spotify integration)
+
+**AI:**
+- OpenRouter (for LLM integration)
+
+**CI/CD and Hosting:**
+- Vercel (recommended for MVP to save engineering time)
+- DigitalOcean (cost-efficient but adds ops time, with App Platform as a preferred option over raw droplets)
+
+##
+
+###  AI Verdict (short)
 **Yes, this stack can ship the MVP in 3 weeks**, but use conservative/stable versions and a few implementation guardrails. The biggest risks to speed are picking newest majors (Next 15, Tailwind 4, React 19) and self‑hosting on DigitalOcean instead of a fully managed Next.js platform; both are solvable.
 
 ### Answers to your questions
