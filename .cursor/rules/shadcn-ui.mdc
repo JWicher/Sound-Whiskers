@@ -1,0 +1,55 @@
+---
+alwaysApply: true
+description: shadcn/ui component library usage guidelines
+---
+
+# shadcn/ui Component Library
+
+This project uses **shadcn/ui** as the primary UI component library for all interface elements.
+
+## Configuration
+
+The project is configured with shadcn/ui using the **"new-york"** style variant. See [components.json](mdc:components.json) for the complete configuration.
+
+- **Style**: new-york
+- **Components path**: `@/components/ui`
+- **Utils path**: `@/lib/utils` (see [utils.ts](mdc:src/lib/utils.ts))
+- **Icon library**: Lucide React
+- **CSS Variables**: Enabled with neutral base color
+
+## Component Installation
+
+When you need a shadcn/ui component that isn't already installed, use this command:
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+### Common Components
+Examples of frequently used components:
+- `npx shadcn@latest add button`
+- `npx shadcn@latest add input`
+- `npx shadcn@latest add form`
+- `npx shadcn@latest add card`
+- `npx shadcn@latest add dialog`
+- `npx shadcn@latest add toast`
+- `npx shadcn@latest add label`
+- `npx shadcn@latest add separator`
+
+## Usage Guidelines
+
+1. **Always use shadcn/ui components** for all UI elements instead of creating custom components from scratch
+2. **Import components** from `@/components/ui/[component-name]`
+3. **Customize components** by modifying the generated files in `src/components/ui/` if needed
+4. **Use the cn() utility** from [utils.ts](mdc:src/lib/utils.ts) for conditional class merging
+5. **Follow Tailwind CSS classes** for styling, which are pre-configured to work with shadcn/ui
+
+## Available Components
+
+Check the [shadcn/ui documentation](https://ui.shadcn.com/docs/components) for a complete list of available components.
+
+## Project Integration
+
+- Components are automatically configured to work with the existing [tailwind.config.ts](mdc:tailwind.config.ts)
+- CSS variables are defined in [globals.css](mdc:src/app/globals.css)  
+- TypeScript definitions are handled automatically through the shadcn/ui installation
