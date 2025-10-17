@@ -1,0 +1,103 @@
+---
+alwaysApply: true
+---
+
+# AI Rules for Sound Whiskers
+
+An AI-powered playlist manager that lets users create, edit, and improve song lists through intelligent recommendations and advanced search, with seamless Spotify export support.
+
+## Tech Stack
+
+**Frontend:**
+- Next.js (App Router) 14
+- TypeScript 5
+- React 18
+- Tailwind CSS 4
+- shadcn/ui
+
+**Backend:**
+- Supabase (Auth, Postgres with RLS)
+- Stripe (Billing)
+- Node.js (via Next.js API routes)
+- spotify-web-api-node (for Spotify integration)
+
+**AI:**
+- OpenRouter (for LLM integration)
+
+**Hosting:**
+- Vercel (recommended for MVP)
+
+## Project Structure
+
+When introducing changes to the project, always follow the directory structure below:
+
+- `./src` - source code
+- `./src/app` - Next.js App Router pages and layouts
+- `./src/app/api` - API routes for server-side functionality
+- `./src/components` - reusable React components
+- `./src/components/ui` - shadcn/ui components
+- `./src/lib` - utility functions and shared logic
+- `./public` - public static assets
+
+When modifying the directory structure, always update this section.
+
+## Core Features & Implementation Guidelines
+
+### Authentication
+- Use Supabase Auth for magic link + email/password authentication
+- Implement 30-day session persistence
+- Enable email verification for all new accounts
+
+### Spotify Integration
+- Use `spotify-web-api-node` in Next.js API routes
+- Store refresh tokens encrypted in Supabase
+- Implement OAuth flow with playlist-modify scopes only
+- Handle rate limiting and token refresh automatically
+
+### AI Integration
+- Use OpenRouter for LLM features
+- Implement 60-second timeout for AI operations
+- Fallback to Spotify Recommendations API when AI fails
+- Support EN/PL languages for AI-generated content
+
+### Security Requirements
+- Enable Supabase RLS on all database tables
+- Encrypt Spotify refresh tokens before storage
+- Verify all webhook signatures (Stripe, OpenRouter)
+- Use least-privilege approach for all API scopes
+- Implement rate limiting on search and AI endpoints
+
+## Coding Practices
+
+### Guidelines for clean code
+
+- Prioritize error handling and edge cases
+- Handle errors and edge cases at the beginning of functions
+- Use early returns for error conditions to avoid deeply nested if statements
+- Place the happy path last in the function for improved readability
+- Avoid unnecessary else statements; use if-return pattern instead
+- Use guard clauses to handle preconditions and invalid states early
+- Implement proper user-friendly error messages
+- Consider using custom error types or error factories for consistent error handling
+
+### API Routes Best Practices
+
+- Always use Node.js runtime for API routes that interact with external APIs
+- Implement proper timeout handling (25s for search, 60s for AI/export)
+- Use environment variables for all API keys and secrets
+- Implement idempotent webhook handlers
+
+### Component Development
+
+- Use shadcn/ui components as the foundation for all UI elements
+- Implement components with TypeScript for better type safety
+- Use the `cn()` utility from [utils.ts](mdc:src/lib/utils.ts) for conditional styling
+- Follow React best practices for hooks and state management
+- Implement proper loading states and error boundaries
+
+### Database Operations
+
+- Always use Supabase RLS policies for data access control
+- Implement proper indexing for performance
+- Use prepared statements to prevent SQL injection
+- Handle database migrations carefully in production
