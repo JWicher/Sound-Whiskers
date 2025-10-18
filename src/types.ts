@@ -222,7 +222,9 @@ export type AISessionListDto = PaginatedResponse<AISessionDto>
 // === EXPORT DTOS ===
 
 // POST /api/playlists/{id}/export/spotify
-export interface ExportToSpotifyCommand {}
+export interface ExportToSpotifyCommand {
+  description?: string | null
+}
 
 // POST /api/playlists/{id}/export/spotify response
 export interface ExportToSpotifyResponseDto {
@@ -263,5 +265,7 @@ export interface WebhookResponseDto {
 // === ACCOUNT DTOS ===
 
 // DELETE /api/account response
-export interface DeleteAccountResponseDto {}
+export interface DeleteAccountResponseDto {
+  status: string
+}
 

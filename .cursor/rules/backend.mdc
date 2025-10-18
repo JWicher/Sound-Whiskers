@@ -1,0 +1,99 @@
+---
+globs: '**/api/**/*.ts,**/lib/**/*.ts,**/middleware.ts'
+---
+
+## Backend
+
+### General Guidelines
+
+- Use Next.js API routes with Node.js runtime for external API integrations (Spotify, OpenRouter, Stripe)
+- Implement proper timeout handling (25s for search, 60s for AI/export operations)
+- Always handle errors and edge cases at the beginning of functions using early returns
+- Use environment variables for all API keys and secrets, never expose them to the client
+- Implement rate limiting on search and AI endpoints to prevent abuse
+
+### API Routes Best Practices
+
+#### Structure and Runtime
+
+- Always use Node.js runtime for API routes that interact with external APIs
+- Structure API routes in `/app/api/` following Next.js App Router conventions
+- Implement proper HTTP status codes and consistent response formats
+- Use TypeScript for better type safety and error prevention
+
+#### Timeout and Error Handling
+
+- Enforce timeouts at the API route level (search: 25s, AI/export: 60s)
+- Implement proper user-friendly error messages
+- Use guard clauses to handle preconditions and invalid states early
+- Place the happy path last in functions for improved readability
+- Consider using custom error types for consistent error handling
+
+### Database Guidelines
+
+#### Supabase and RLS
+
+- Enable Supabase Row Level Security (RLS) on all database tables by default
+- Write explicit RLS policies for data access control
+- Use prepared statements to prevent SQL injection
+- Implement proper indexing for performance optimization
+- Handle database migrations carefully in production environments
+
+#### Data Security
+
+- Store sensitive data (like Spotify refresh tokens) encrypted using `pgcrypto` or Supabase Vault
+- Restrict column access for sensitive information
+- Rotate encryption keys regularly
+- Use least-privilege approach for all database operations
+
+### External API Integration
+
+#### Spotify Integration
+
+- Use `spotify-web-api-node` library for Spotify Web API interactions
+- Store refresh tokens encrypted in Supabase database
+- Implement OAuth flow with playlist-modify scopes only (least privilege)
+- Handle rate limiting and automatic token refresh
+- Default to private playlists for user security
+
+#### OpenRouter (AI Integration)
+
+- Implement 60-second timeout for AI operations
+- Use fallback to Spotify Recommendations API when AI fails
+- Support both EN/PL languages for AI-generated content
+- Validate AI responses on the server before returning to client
+- Use small, cost-effective models for MVP, optimize later
+
+#### Stripe Integration
+
+- Implement idempotent webhook handlers for billing events
+- Verify webhook signatures for security
+- Handle subscription state changes reliably with proper error handling
+- Implement retry logic for failed payment operations
+- Use Stripe Billing for quota management ($10/mo, no trial)
+
+### Security Best Practices
+
+#### Authentication and Authorization
+
+- Use Supabase Auth for magic link and email/password authentication
+- Configure email verification for all new accounts
+- Implement 30-day session persistence through proper cookie settings
+- Invalidate sessions on account deletion
+
+#### API Security
+
+- Verify all webhook signatures (Stripe, OpenRouter) 
+- Keep API keys in platform environment variables, never in client code
+- Implement per-IP and per-user rate limiting
+- Use HTTPS for all external API communications
+- Validate and sanitize all user inputs
+
+### Performance and Reliability
+
+#### Caching and Optimization
+
+- Use appropriate caching strategies for external API responses
+- Implement pagination for large data sets
+- Optimize database queries with proper indexing
+- Use connection pooling for database operations

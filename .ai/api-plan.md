@@ -5,7 +5,7 @@
 - **Playlist** → table: `playlists`
 - **PlaylistTrack** → table: `playlist_tracks`
 - **AISession** → table: `ai_sessions`
-- **SpotifyLink** (server-only) → table: `spotify_tokens`
+- **SpotifyToken** (server-only) → table: `spotify_tokens`
 - **Search** (Spotify) → external API, no table
 - **Export** (to Spotify) → external API, no table
 - **Billing** (Stripe) → external API + `profiles.plan`
@@ -143,18 +143,14 @@ Conventions
   - Errors: 401, 404
 
 - PUT `/api/playlists/{playlistId}/tracks/reorder`
-  - Description: Reorder tracks by providing the full ordered list of `trackUri`s or `{position, trackUri}` pairs.
-  - Request (option A – URIs only):
+  - Description: Reorder tracks by providing the full ordered list of `{position, trackUri}` pairs.
+  - Request:
     ```json
-    { "orderedTrackUris": ["spotify:track:...", "spotify:track:..."] }
-    ```
-    Request (option B – explicit):
-    ```json
-    { "ordered": [{"position":1,"trackUri":"spotify:track:..."}] }
+    { "ordered": [{ "position": 1, "trackUri": "spotify:track:..." }] }
     ```
   - Response 200:
     ```json
-    { "positions": [{"trackUri":"spotify:track:...","position":1}] }
+    { "positions": [{ "position": 1, "trackUri":"spotify:track:..." }] }
     ```
   - Notes: Reorder does not alter `artist`, `title`, or `album` metadata.
   - Errors: 400, 401, 404, 422 MISSING_OR_EXTRA_ITEMS (must match current non-deleted set exactly)
@@ -180,16 +176,15 @@ Conventions
   - Description: Generate up to 20-track suggestions from a natural-language prompt (EN/PL). Applies 60s timeout; validates tracks in user market; dedupes; backfills via Spotify Recommendations. Counts toward monthly quota on success only.
   - Request:
     ```json
-    { "prompt": "string", "language": "en|pl" }
+    { "prompt": "string" }
     ```
   - Response 200 (succeeded):
     ```json
     {
       "sessionId": "uuid",
-      "nameSuggestion": "string",
       "summary": "string|null",
       "items": [
-        { "artist": "string", "title": "string","album": "string" }
+        { "artist": "string", "title": "string", "album": "string" }
       ],
       "count": 20,
       "warningUnderMinCount": false
@@ -276,7 +271,7 @@ Conventions
   - Description: Self-serve delete. Revoke Spotify tokens, delete `spotify_tokens`, `playlists` (soft or hard per policy), `playlist_tracks`, `ai_sessions`, and Supabase user. Requires re-auth/confirmation flow client-side.
   - Response 202 Accepted:
     ```json
-    { "status": "scheduled" }
+    { "status": "accepted" }
     ```
   - Errors: 401, 423 ACCOUNT_LOCKED
 
