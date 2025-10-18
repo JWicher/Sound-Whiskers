@@ -38,6 +38,9 @@ Constraints:
 | `playlist_id` | `uuid`  | FK → `playlists.id`, `NOT NULL` |
 | `position`    | `smallint` | 1-based track order, `CHECK (position BETWEEN 1 AND 100)` |
 | `track_uri`   | `text`  | Spotify track URI, `NOT NULL` |
+| `artist`      | `text`  | Track artist name, `NOT NULL` |
+| `title`       | `text`  | Track title, `NOT NULL` |
+| `album`       | `text`  | Album name, `NOT NULL` |
 | `is_deleted`  | `boolean` | `NOT NULL DEFAULT FALSE` |
 | `added_at`    | `timestamptz` | `NOT NULL DEFAULT now()` |
 
@@ -45,6 +48,7 @@ Primary Key: `(playlist_id, position)`
 
 Additional Constraints & Indexes:
 * ON DELETE CASCADE (soft) handled via trigger `soft_delete_playlist_tracks()` when a playlist is soft-deleted.
+* Denormalized Spotify metadata (artist, title, album) stored for performance and reduced API calls.
 
 ---
 
