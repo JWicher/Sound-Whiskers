@@ -35,7 +35,10 @@ When introducing changes to the project, always follow the directory structure b
 - `./src/app` - Next.js App Router pages and layouts
 - `./src/app/api` - API routes for server-side functionality
 - `./src/components` - reusable React components
+- `./src/db` - database types
 - `./src/components/ui` - shadcn/ui components
+- `./src/middleware.ts` -  Next.js middleware
+- `./src/lib/supabase` - Supabase clients 
 - `./src/lib` - utility functions and shared logic
 - `./public` - public static assets
 

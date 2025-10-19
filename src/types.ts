@@ -70,6 +70,14 @@ export interface ProfileUsageDto {
 
 // === PLAYLIST DTOS ===
 
+// GET /api/playlists query options
+export interface ListPlaylistsOptions {
+  page: number
+  pageSize: number
+  search?: string
+  sort: string // Format: 'column.direction' (e.g., 'name.asc', 'created_at.desc')
+}
+
 // GET /api/playlists (list item)
 export interface PlaylistListItemDto {
   id: string

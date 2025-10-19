@@ -97,3 +97,4 @@ globs: '**/api/**/*.ts,**/lib/**/*.ts,**/middleware.ts'
 - Implement pagination for large data sets
 - Optimize database queries with proper indexing
 - Use connection pooling for database operations
+- Use the client from  '/src/lib/supabase/server.ts' and not from '@/lib/supabase/server' or '@supabase/ssr'
