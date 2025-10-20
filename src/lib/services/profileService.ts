@@ -27,7 +27,7 @@ export class ProfileService {
    */
   async getProfile(userId: string): Promise<ProfileDto> {
     // Input validation using helper method
-    this.validateUserId(userId, 'ProfileService.getProfile');
+    this.validateUserId(userId);
 
     try {
       const { data, error } = await this.supabase
@@ -64,7 +64,7 @@ export class ProfileService {
    */
   async updateProfile(userId: string, command: UpdateProfileCommand): Promise<ProfileDto> {
     // Input validation using helper method
-    this.validateUserId(userId, 'ProfileService.updateProfile');
+    this.validateUserId(userId);
 
     const { username } = command;
     
@@ -117,7 +117,7 @@ export class ProfileService {
    */
   async getUsage(userId: string): Promise<ProfileUsageDto> {
     // Input validation using helper method
-    this.validateUserId(userId, 'ProfileService.getUsage');
+    this.validateUserId(userId);
 
     try {
       // Calculate current billing month boundaries (UTC)
@@ -205,7 +205,7 @@ export class ProfileService {
    */
   async deleteAccount(userId: string): Promise<void> {
     // Input validation using helper method
-    this.validateUserId(userId, 'ProfileService.deleteAccount');
+    this.validateUserId(userId);
 
     try {
       // Step 1: Delete Spotify tokens (if any)
@@ -266,7 +266,7 @@ export class ProfileService {
   /**
    * Validates common input parameters and throws appropriate errors
    */
-  private validateUserId(userId: string, context: string): void {
+  private validateUserId(userId: string): void {
     if (!userId) {
       throw new ApiError(400, 'VALIDATION_ERROR', 'User ID is required');
     }

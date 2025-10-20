@@ -24,4 +24,4 @@ Key Principles
 - File structure: imports, types, main component, subcomponents, helpers, static content.
 - Use Zod for form validation.
 - Use Zustand for state managament.
-- Use Shadcn UI, Radix, and Tailwind CSS for components and styling.
+- Use Shadcn UI, Radix, and Tailwind CSS for components and styling. Avoid using additional dependencies if possible

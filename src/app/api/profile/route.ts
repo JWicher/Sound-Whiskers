@@ -4,7 +4,7 @@ import { handleApiError } from '@/lib/errors/handleApiError';
 import { updateProfileSchema } from '@/lib/validators/profileSchemas';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createClient();
     const {
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   try {
     const supabase = createClient();
     const {
