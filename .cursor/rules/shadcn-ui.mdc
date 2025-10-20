@@ -48,8 +48,82 @@ Examples of frequently used components:
 
 Check the [shadcn/ui documentation](https://ui.shadcn.com/docs/components) for a complete list of available components.
 
+## Best Practices
+
+### Component Composition
+- Compose complex UI from multiple shadcn/ui primitives
+- Keep custom components minimal - prefer shadcn/ui variants
+- Use component props for customization before adding custom CSS
+
+### Styling with cn()
+```tsx
+import { cn } from "@/lib/utils"
+
+// Good: Composing classes conditionally
+<Button className={cn("w-full", isLoading && "opacity-50")} />
+
+// Good: Merging with custom classes
+<Card className={cn("border-2", className)} />
+```
+
+### Forms and Validation
+- Use `form` component with React Hook Form for complex forms
+- Combine `label`, `input`, and form field components
+- Always provide proper accessibility attributes
+
+### Theming
+- Modify CSS variables in [globals.css](mdc:src/app/globals.css) for theme changes
+- Use semantic color tokens (e.g., `primary`, `secondary`, `destructive`)
+- Dark mode is automatically supported via CSS variables
+
+### Common Patterns
+
+#### Loading States
+```tsx
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+
+<Button disabled={isLoading}>
+  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+  Submit
+</Button>
+```
+
+#### Dialog Pattern
+```tsx
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+
+<Dialog>
+  <DialogTrigger asChild>
+    <Button>Open Dialog</Button>
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Dialog Title</DialogTitle>
+    </DialogHeader>
+    {/* Dialog content */}
+  </DialogContent>
+</Dialog>
+```
+
+#### Data Display
+```tsx
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
+<Card>
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent>
+    {/* Card content */}
+  </CardContent>
+</Card>
+```
+
 ## Project Integration
 
 - Components are automatically configured to work with the existing [tailwind.config.ts](mdc:tailwind.config.ts)
 - CSS variables are defined in [globals.css](mdc:src/app/globals.css)  
 - TypeScript definitions are handled automatically through the shadcn/ui installation
+- All components support TypeScript with proper type inference
