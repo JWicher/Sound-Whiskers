@@ -159,7 +159,7 @@ export function PlaylistItem({
             </Card>
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent className="bg-gray-100">
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete Playlist</DialogTitle>
                         <DialogDescription>

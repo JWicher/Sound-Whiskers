@@ -83,7 +83,7 @@ export function EditPlaylistDialog({
 
     return (
         <Dialog open={true} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-[425px] bg-gray-100">
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Edit Playlist</DialogTitle>
                     <DialogDescription>
