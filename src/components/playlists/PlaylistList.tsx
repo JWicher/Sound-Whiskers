@@ -110,7 +110,7 @@ export function PlaylistList({ onPlaylistClick }: PlaylistListProps) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 h-full">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -149,7 +149,6 @@ export function PlaylistList({ onPlaylistClick }: PlaylistListProps) {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10"
-                            // disabled={loading}
                             />
                         </div>
 

@@ -122,9 +122,9 @@ export function PlaylistItem({
                                     <span className="sr-only">Open menu</span>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-gray-100">
+                            <DropdownMenuContent align="end">
                                 {onEdit && (
-                                    <DropdownMenuItem onClick={handleEdit} className="dropdown-menu-item">
+                                    <DropdownMenuItem onClick={handleEdit}>
                                         <Edit className="mr-2 h-4 w-4" />
                                         Edit
                                     </DropdownMenuItem>
@@ -133,10 +133,8 @@ export function PlaylistItem({
                                     <DropdownMenuItem
                                         onClick={handleDelete}
                                         disabled={isDeleting}
-                                        className={cn(
-                                            "text-destructive",
-                                            !isDeleting && "dropdown-menu-item"
-                                        )}
+                                        className="text-destructive"
+
                                     >
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         {isDeleting ? 'Deleting...' : 'Delete'}
@@ -149,14 +147,13 @@ export function PlaylistItem({
 
                 <CardContent>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-start flex-col w-full">
                             <span>{playlist.trackCount} tracks</span>
-                            <span>•</span>
                             <span>Updated {formatDate(playlist.updatedAt)}</span>
+                            <span className="text-xs text-right w-full">
+                                Created {formatDate(playlist.createdAt)}
+                            </span>
                         </div>
-                        <span className="text-xs">
-                            Created {formatDate(playlist.createdAt)}
-                        </span>
                     </div>
                 </CardContent>
             </Card>
