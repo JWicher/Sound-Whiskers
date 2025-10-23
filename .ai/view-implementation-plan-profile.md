@@ -12,10 +12,10 @@ The Profile view (`/profile`) lets a signed-in user manage account information, 
 - Related backend:
   - GET `/api/profile`
   - PATCH `/api/profile`
+  - DELETE `/api/profile`
   - GET `/api/profile/usage`
   - Billing: `POST /api/billing/checkout`, `POST /api/billing/portal`
   - Spotify: `GET /api/spotify/status`, `DELETE /api/spotify/link`, `GET /api/spotify/login` (OAuth start)
-  - Account deletion: `DELETE /api/account`
 
 ### 2. View Routing
 - Path: `/profile`
@@ -84,7 +84,7 @@ ProfilePage (Server component)
 #### 4.8 DangerZoneCard
 - Elements: `Card` with `Delete account` button (destructive), confirm `Dialog`
 - Confirmation: Require typing `DELETE` (or checkbox) to proceed
-- API: `DELETE /api/account`
+- API: `DELETE /api/profile`
 - Behavior: On success, sign out and redirect to `/auth` with goodbye message; handle 401 gracefully.
 
 ### 5. Types
@@ -115,7 +115,7 @@ All DTOs should be sourced from `@/types` or colocated API route types to avoid 
 | `SpotifyCard` (unlink) | DELETE `/api/spotify/link` | `null` | `{ ok: true }` |
 | `PlanBillingCard` (upgrade) | POST `/api/billing/checkout` | `{}` | `{ url: string }` |
 | `PlanBillingCard` (portal) | POST `/api/billing/portal` | `{}` | `{ url: string }` |
-| `DangerZoneCard` (delete) | DELETE `/api/account` | `null` | `204 No Content` |
+| `DangerZoneCard` (delete) | DELETE `/api/profile` | `null` | `204 No Content` |
 
 ### 8. User Interactions
 1. View profile → data loads; skeletons shown.

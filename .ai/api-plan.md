@@ -48,6 +48,14 @@ Conventions
   - Response 200: same shape as GET.
   - Errors: 400 VALIDATION_ERROR, 401 UNAUTHORIZED
 
+- DELETE `/api/profile`
+  - Description: Self-serve delete. Revoke Spotify tokens, delete `spotify_tokens`, `playlists` (soft or hard per policy), `playlist_tracks`, `ai_sessions`, and Supabase user. Requires re-auth/confirmation flow client-side.
+  - Response 202 Accepted:
+    ```json
+    { "status": "accepted" }
+    ```
+  - Errors: 401, 423 ACCOUNT_LOCKED
+
 - GET `/api/profile/usage`
   - Description: Convenience usage summary (playlists count, AI quota usage in current month UTC).
   - Response 200:
@@ -264,16 +272,6 @@ Conventions
   - Description: Verify signature; idempotently update `profiles.plan` and `stripe_customer_id`.
   - Response 200: `{ "ok": true }`
   - Errors: 400 INVALID_SIGNATURE, 409 IDEMPOTENCY_CONFLICT
-
-### 2.9 Account Deletion
-
-- DELETE `/api/account`
-  - Description: Self-serve delete. Revoke Spotify tokens, delete `spotify_tokens`, `playlists` (soft or hard per policy), `playlist_tracks`, `ai_sessions`, and Supabase user. Requires re-auth/confirmation flow client-side.
-  - Response 202 Accepted:
-    ```json
-    { "status": "accepted" }
-    ```
-  - Errors: 401, 423 ACCOUNT_LOCKED
 
 ## 3. Authentication and Authorization
 

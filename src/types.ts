@@ -272,8 +272,8 @@ export interface WebhookResponseDto {
 
 // === ACCOUNT DTOS ===
 
-// DELETE /api/account response
-export interface DeleteAccountResponseDto {
+// DELETE /api/profile response
+export interface DeleteProfileResponseDto {
   status: string
 }
 

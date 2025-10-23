@@ -107,11 +107,10 @@ Sound Whiskers is a Next.js web application (App Router, RSC + Client Components
   - Sections: Account (username), Plan & Billing (upgrade/portal), Usage (playlists count, AI quota), Spotify (status/link/unlink), Danger Zone (delete)
 - **Key view components**: `card`, `form`, `input`, `button`, `badge`, `separator`, `alert`, `toast`, `dialog` (confirm)
 - **Related API endpoints**:
-  - `GET /api/profile`, `PATCH /api/profile`
+  - `GET /api/profile`, `PATCH /api/profile`, `DELETE /api/profile`
   - `GET /api/profile/usage`
   - Billing: `POST /api/billing/checkout`, `POST /api/billing/portal`
   - Spotify: `GET /api/spotify/status`, `DELETE /api/spotify/link`
-  - Account deletion: `DELETE /api/account`
 - **UX, accessibility, and security considerations**:
   - Clear warnings in Danger Zone, confirm modal, information about irreversibility. No PII leakage in logs/toasts. Inline validation errors.
 

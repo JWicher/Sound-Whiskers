@@ -6,8 +6,8 @@ This implementation covers four profile-related endpoints that provide complete 
 
 - **GET /api/profile**: Retrieves the authenticated user's profile information
 - **PATCH /api/profile**: Updates the user's username (plan changes handled by billing webhooks)  
+- **DELETE /api/profile**: Self-serve account deletion that purges user data and revokes tokens
 - **GET /api/profile/usage**: Returns usage statistics including playlist counts and AI quota consumption
-- **DELETE /api/account**: Self-serve account deletion that purges user data and revokes tokens
 
 All endpoints require user authentication via Supabase Auth and operate on the `profiles` table with proper RLS policies.
 
@@ -32,16 +32,16 @@ All endpoints require user authentication via Supabase Auth and operate on the `
   ```
 - **Authentication**: Required (Supabase session)
 
-### GET /api/profile/usage
-- **HTTP Method**: GET
-- **URL Structure**: `/api/profile/usage`
+### DELETE /api/profile
+- **HTTP Method**: DELETE
+- **URL Structure**: `/api/profile`
 - **Parameters**: None (user identified via authentication)
 - **Request Body**: None
 - **Authentication**: Required (Supabase session)
 
-### DELETE /api/account
-- **HTTP Method**: DELETE
-- **URL Structure**: `/api/account`
+### GET /api/profile/usage
+- **HTTP Method**: GET
+- **URL Structure**: `/api/profile/usage`
 - **Parameters**: None (user identified via authentication)
 - **Request Body**: None
 - **Authentication**: Required (Supabase session)
@@ -64,6 +64,11 @@ export interface UpdateProfileCommand {
   username: string
 }
 
+// Response for DELETE /api/profile
+export interface DeleteProfileResponseDto {
+  status: string
+}
+
 // Response for GET /api/profile/usage
 export interface ProfileUsageDto {
   playlists: {
@@ -76,11 +81,6 @@ export interface ProfileUsageDto {
     remaining: number
     resetAt: string
   }
-}
-
-// Response for DELETE /api/account
-export interface DeleteAccountResponseDto {
-  status: string
 }
 
 // Error response structure
@@ -111,6 +111,13 @@ export interface ErrorResponse {
 **PATCH /api/profile (200)**:
 Same structure as GET /api/profile with updated data.
 
+**DELETE /api/profile (202)**:
+```json
+{
+  "status": "accepted"
+}
+```
+
 **GET /api/profile/usage (200)**:
 ```json
 {
@@ -124,13 +131,6 @@ Same structure as GET /api/profile with updated data.
     "remaining": 1,
     "resetAt": "2023-11-01T00:00:00Z"
   }
-}
-```
-
-**DELETE /api/account (202)**:
-```json
-{
-  "status": "accepted"
 }
 ```
 
@@ -175,6 +175,13 @@ Same structure as GET /api/profile with updated data.
 4. Query updated profile data
 5. Transform to `ProfileDto` and return
 
+### DELETE /api/profile
+1. Validate authentication → Extract user ID from session
+2. Soft or hard delete user's playlists and tracks (cascade)
+3. Delete profile record
+4. Delete Supabase Auth user
+5. Return confirmation of scheduled deletion
+
 ### GET /api/profile/usage
 1. Validate authentication → Extract user ID from session
 2. Count user's playlists (non-deleted)
@@ -182,13 +189,6 @@ Same structure as GET /api/profile with updated data.
 4. Determine limits based on user's plan (free: 3 AI, pro: 50 AI)
 5. Calculate next billing cycle reset date
 6. Return formatted usage summary
-
-### DELETE /api/account
-1. Validate authentication → Extract user ID from session
-2. Soft or hard delete user's playlists and tracks (cascade)
-3. Delete profile record
-4. Delete Supabase Auth user
-5. Return confirmation of scheduled deletion
 
 ### Database Queries Required
 - Profile lookup: `SELECT * FROM profiles WHERE user_id = $1`
@@ -271,16 +271,17 @@ Same structure as GET /api/profile with updated data.
    - Implement username update logic via ProfileService
    - Add proper error handling and response formatting
 
-4. **Implement GET /api/profile/usage endpoint**
+4. **Implement DELETE /api/profile endpoint**
+   - Create account deletion service with comprehensive cleanup logic
+   - Implement cascading deletion of user data (playlists, tracks, AI sessions)
+   - Integrate Supabase Auth user deletion
+
+5. **Implement GET /api/profile/usage endpoint**
    - Create usage calculation service methods
    - Add billing cycle calculation logic
    - Implement route handler with authentication
    - Add proper aggregation queries and response formatting
 
-5. **Implement DELETE /api/account endpoint**
-   - Create account deletion service with comprehensive cleanup logic
-   - Implement cascading deletion of user data (playlists, tracks, AI sessions)
-   - Integrate Supabase Auth user deletion
 
 6. **Add comprehensive error handling**
    - Implement consistent error response formatting
