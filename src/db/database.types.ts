@@ -123,6 +123,60 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_sessions_2025_12: {
+        Row: {
+          cost: number
+          created_at: string
+          id: string
+          prompt: string
+          status: Database["public"]["Enums"]["ai_status_enum"]
+          user_id: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          id?: string
+          prompt: string
+          status: Database["public"]["Enums"]["ai_status_enum"]
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          id?: string
+          prompt?: string
+          status?: Database["public"]["Enums"]["ai_status_enum"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_sessions_2026_01: {
+        Row: {
+          cost: number
+          created_at: string
+          id: string
+          prompt: string
+          status: Database["public"]["Enums"]["ai_status_enum"]
+          user_id: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          id?: string
+          prompt: string
+          status: Database["public"]["Enums"]["ai_status_enum"]
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          id?: string
+          prompt?: string
+          status?: Database["public"]["Enums"]["ai_status_enum"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       playlist_tracks: {
         Row: {
           added_at: string
@@ -167,6 +221,7 @@ export type Database = {
       playlists: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           is_deleted: boolean
           name: string
@@ -175,6 +230,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           is_deleted?: boolean
           name: string
@@ -183,6 +239,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           is_deleted?: boolean
           name?: string
@@ -266,10 +323,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_next_ai_sessions_partition: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      create_next_ai_sessions_partition: { Args: never; Returns: undefined }
       get_ai_usage_summary: {
         Args: { p_end_date?: string; p_start_date?: string; p_user_id: string }
         Returns: {
