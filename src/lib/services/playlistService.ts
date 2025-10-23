@@ -9,7 +9,10 @@ import type {
 } from '@/types';
 
 export class PlaylistService {
-  private supabase = createClient();
+  // Lazy getter to ensure createClient() is called within request context
+  private get supabase() {
+    return createClient();
+  }
 
   async list(userId: string, options: ListPlaylistsOptions): Promise<PlaylistListDto> {
     const { page, pageSize, search, sort } = options;

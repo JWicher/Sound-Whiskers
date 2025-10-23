@@ -20,7 +20,10 @@ const PLAN_LIMITS_CACHE = {
 } as const;
 
 export class ProfileService {
-  private supabase = createClient();
+  // Lazy getter to ensure createClient() is called within request context
+  private get supabase() {
+    return createClient();
+  }
 
   /**
    * Retrieves user profile information
