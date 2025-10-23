@@ -1,6 +1,7 @@
 'use client';
 
 import { ThemeSelector } from '@/components/ui/theme-selector';
+import { AuthHeaderActions } from '@/components/auth/AuthHeaderActions';
 
 export function AppHeader() {
     return (
@@ -11,6 +12,7 @@ export function AppHeader() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <AuthHeaderActions />
                     <ThemeSelector />
                 </div>
             </div>
