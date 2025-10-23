@@ -1,0 +1,28 @@
+---
+alwaysApply: false
+description: "Generate Mermaid diagrams for application flows and component relationships; diagrams saved as .md under .ai/diagrams with names diagram-[feature or flow name].md"
+globs: "*.md,*.ts,*.tsx"
+---
+
+### Mermaid Diagram Generation Rules
+
+- Output location: `.ai/diagrams/diagram-[name].md`
+- Diagram naming pattern: `diagram-[feature-or-flow-name].md`
+- Diagram content: include a Mermaid graph inside a Markdown code block:
+  ```mermaid
+  graph TD
+  A[Start] --> B[Process]
+  B --> C[End]
+  ```
+- Diagram scope:
+  - Application flows (routing, navigation, data flow)
+  - Component relationships (UI composition, dependencies)
+- Source of truth: derive from codebase references in `src/app`, `src/components`, `src/lib`, and related to playlists as per project scope.
+- Example:
+          ```mermaid
+          flowchart TD
+            A[User enters credentials] --> B[Validate input]
+            B -->|Valid| C[Authenticate user]
+            B -->|Invalid| D[Show error message]
+            C --> E[Redirect to dashboard]
+          ```

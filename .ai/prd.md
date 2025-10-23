@@ -101,7 +101,7 @@ Acceptance Criteria:
 
 ### Authentication & Accounts
 - Magic link + email/password; mandatory email verification.
-- Session lifetime 30 days; skip refresh for MVP.
+- Session lifetime 30 days.
 
 ### Subscriptions & Billing
 - Price: $10 USD/month, tax-inclusive per locale; no trial.

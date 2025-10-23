@@ -1,0 +1,251 @@
+---
+description: Supabase Auth for Next.js 14 (App Router): SSR clients, cookie handling via getAll/setAll, middleware-based session refresh and route protection, and best practices.
+globs:
+alwaysApply: false
+---
+
+# Supabase Auth Integration with Next.js (App Router)
+
+Use this guide to introduce authentication (sign-up & sign-in) in Next.js 14 (App Router) with SSR support using `@supabase/ssr`.
+
+## Before we start
+
+VERY IMPORTANT: Ask which pages or components should behave differently after introducing authentication. Adjust further steps accordingly.
+
+## Core Requirements
+
+1. Use `@supabase/ssr` package (NOT auth-helpers)
+2. Use ONLY `getAll` and `setAll` for cookie management
+3. NEVER use individual `get`, `set`, or `remove` cookie methods
+4. Implement session management via Next.js `middleware.ts` with JWT (Supabase Auth)
+5. Enable email verification for all new accounts and 30-day session persistence
+6. Keep Supabase keys in environment variables; never hardcode
+
+## Installation
+
+```bash
+npm install @supabase/ssr @supabase/supabase-js
+```
+
+## Environment Variables
+
+Add to `.env.local` (and `.env.example`):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+The anon key is safe to expose; never expose the service role key in the client.
+
+## Implementation Steps
+
+### 1) Server-side Supabase client
+
+Create or verify `src/lib/supabase/server.ts`:
+
+```ts
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+
+import type { Database } from '@/db/database.types';
+
+export function createClient() {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookies().getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookies().set(name, value, options);
+            });
+          } catch {
+            // Ignore in Server Components; middleware will refresh sessions
+          }
+        },
+      },
+    }
+  );
+}
+```
+
+Reference: [`src/lib/supabase/server.ts`](mdc:src/lib/supabase/server.ts)
+
+### 2) Browser client
+
+Create or verify `src/lib/supabase/client.ts`:
+
+```ts
+import { createBrowserClient } from '@supabase/ssr';
+
+import type { Database } from '@/db/database.types';
+
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+```
+
+Reference: [`src/lib/supabase/client.ts`](mdc:src/lib/supabase/client.ts)
+
+### 3) Middleware for session refresh and protection
+
+Implement `src/middleware.ts` using `getAll`/`setAll` only:
+
+```ts
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+
+const PUBLIC_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/reset-password',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/logout',
+];
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user && !PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
+
+  return response;
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
+```
+
+Reference: [`src/middleware.ts`](mdc:src/middleware.ts)
+
+### 4) Auth API routes (Node.js runtime)
+
+Create routes under `src/app/api/auth/*/route.ts`:
+
+```ts
+// src/app/api/auth/login/route.ts
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+export const runtime = 'nodejs';
+
+export async function POST(request: Request) {
+  const { email, password } = await request.json();
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ user: data.user });
+}
+```
+
+```ts
+// src/app/api/auth/register/route.ts
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+export const runtime = 'nodejs';
+
+export async function POST(request: Request) {
+  const { email, password } = await request.json();
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ user: data.user });
+}
+```
+
+```ts
+// src/app/api/auth/logout/route.ts
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+export const runtime = 'nodejs';
+
+export async function POST() {
+  const supabase = createClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
+}
+```
+
+### 5) Protecting Server Components
+
+Use the server client in pages/layouts to guard content:
+
+```tsx
+// Example: src/app/(app)/page.tsx
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+
+export default async function Page() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/auth/login');
+  return <div>Welcome {user.email}</div>;
+}
+```
+
+## Good Practices for Supabase Auth (Next.js)
+
+- **Server first**: Prefer server checks and redirects over client-only guards
+- **Cookie APIs**: Use only `getAll`/`setAll` in SSR and middleware
+- **Session refresh**: Call `auth.getUser()` in middleware to refresh sessions
+- **Node runtime for API routes**: `export const runtime = 'nodejs'`
+- **RLS enabled**: Keep RLS on all tables and write explicit policies
+- **Email verification**: Require verification before allowing sensitive operations
+- **Rate limiting**: Apply rate limits to auth endpoints to mitigate abuse
+- **No localStorage tokens**: Rely on Supabase cookies only
+- **Type everything**: Use `Database` types in all Supabase clients
+
+## Common Pitfalls
+
+1. Using `@supabase/auth-helpers-*` packages — not allowed here
+2. Using individual cookie methods (`get`, `set`, `remove`) — use `getAll`/`setAll` only
+3. Skipping the `auth.getUser()` call in middleware — breaks session refresh
+4. Doing client-only route protection — causes flicker and leaks
+5. Exposing service role keys in the client — never do this
+
+## QA Checklist
+
+- Can users sign up, sign in, and sign out via API routes?
+- Do protected routes redirect unauthenticated users both in middleware and server components?
+- Are sessions persisted for 30 days and refreshed automatically?
+- Are RLS policies enforced and tested for all tables?
+- Are only `getAll`/`setAll` used for cookies in server code and middleware?
