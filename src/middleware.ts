@@ -1,8 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse, type NextRequest } from 'next/server';
 
+function isPublicPath(pathname: string): boolean {
+  if (pathname === '/') return true; // landing page
+  if (pathname.startsWith('/auth/')) return true; // auth pages
+  if (pathname.startsWith('/api/auth/')) return true; // auth API endpoints
+  return false;
+}
+
 export async function middleware(request: NextRequest) {
-    const response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -11,7 +18,12 @@ export async function middleware(request: NextRequest) {
   const supabase = createClient();
 
   // Refresh session if expired
-  await supabase.auth.getUser();
+  const user = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+  if (!user && !isPublicPath(pathname)) {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
 
   return response;
 }
