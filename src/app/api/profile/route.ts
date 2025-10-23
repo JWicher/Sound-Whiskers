@@ -83,7 +83,33 @@ export async function DELETE() {
       );
     }
 
-    await profileService.deleteAccount(user.id);
+    const userId = user.id;
+
+    // Step 1: Delete all profile data (playlists, tokens, profile record)
+    await profileService.deleteAccount(userId);
+    
+    // Step 2: Sign out the user's session
+    await supabase.auth.signOut();
+
+    // Step 3: Delete the auth user (requires admin privileges)
+    // This must be done last, after all data cleanup
+    const { createAdminClient } = await import('@/lib/supabase/server');
+    const adminClient = createAdminClient();
+    
+    const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(userId);
+    
+    if (deleteAuthError) {
+      console.error('Failed to delete auth user:', deleteAuthError);
+      // Even if auth deletion fails, we've already cleaned up the data
+      // Return success but log the error for monitoring
+      return NextResponse.json(
+        { 
+          status: 'accepted',
+          warning: 'Profile data deleted but auth cleanup incomplete'
+        },
+        { status: 202 }
+      );
+    }
     
     return NextResponse.json(
       { status: 'accepted' },

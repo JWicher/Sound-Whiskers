@@ -16,7 +16,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createClient } from '@/lib/supabase/client';
 
 export function DangerZoneCard() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -42,15 +41,14 @@ export function DangerZoneCard() {
                 return;
             }
 
-            // Sign out the user
-            const supabase = createClient();
-            await supabase.auth.signOut();
-
-            // Redirect to auth page with goodbye message
+            // Account and auth user are deleted on the server
+            // Session is already signed out by the API
             toast.success('Account deleted successfully. Goodbye!');
+
+            // Small delay to let the user see the success message
             setTimeout(() => {
                 window.location.href = '/auth/login';
-            }, 1000);
+            }, 1500);
         } catch {
             toast.error('Something went wrong. Please try again.');
             setIsDeleting(false);

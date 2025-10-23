@@ -82,6 +82,9 @@ export class PlaylistService {
       if (error.code === 'P0001' && error.message.includes('PLAYLISTS_LIMIT_EXCEEDED')) {
         throw new ApiError(422, 'LIMIT_EXCEEDED', 'Playlists limit exceeded');
       }
+      if (error.code === '23503' && error.message.includes('playlists_owner_id_fkey')) {
+        throw new ApiError(400, 'PROFILE_NOT_FOUND', 'User profile not found. Please refresh the page and try again.');
+      }
       throw new ApiError(500, 'INTERNAL_SERVER_ERROR', error.message);
     }
 

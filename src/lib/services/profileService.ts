@@ -27,6 +27,7 @@ export class ProfileService {
 
   /**
    * Retrieves user profile information
+   * If profile doesn't exist, creates it automatically (fallback for cases where trigger failed)
    */
   async getProfile(userId: string): Promise<ProfileDto> {
     // Input validation using helper method
@@ -39,12 +40,13 @@ export class ProfileService {
         .eq('user_id', userId)
         .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new ApiError(404, 'NOT_FOUND', 'Profile not found');
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile not found - try to create it automatically
+          return await this.createMissingProfile(userId);
+        }
+        throw new ApiError(500, 'INTERNAL_SERVER_ERROR', error.message);
       }
-      throw new ApiError(500, 'INTERNAL_SERVER_ERROR', error.message);
-    }
 
       return {
         userId: data.user_id,
@@ -59,6 +61,55 @@ export class ProfileService {
       }
 
       throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to retrieve profile');
+    }
+  }
+
+  /**
+   * Creates a missing profile for a user (fallback when trigger doesn't fire)
+   * This handles cases where users signed up before the trigger was created
+   */
+  private async createMissingProfile(userId: string): Promise<ProfileDto> {
+    try {
+      // Get user's email from auth to generate a username
+      const { data: { user }, error: authError } = await this.supabase.auth.getUser();
+      
+      if (authError || !user || user.id !== userId) {
+        throw new ApiError(401, 'UNAUTHORIZED', 'Unable to verify user identity');
+      }
+
+      // Generate username from email or use fallback
+      const username = user.email 
+        ? user.email.split('@')[0].substring(0, 64) 
+        : 'User';
+
+      // Create the profile
+      const { data, error } = await this.supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          username: username,
+          plan: 'free' as PlanType,
+        })
+        .select('user_id, username, plan, created_at, updated_at')
+        .single();
+
+      if (error) {
+        throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to create profile');
+      }
+
+      return {
+        userId: data.user_id,
+        username: data.username,
+        plan: data.plan,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to create missing profile');
     }
   }
 
