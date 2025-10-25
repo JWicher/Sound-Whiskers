@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -15,11 +16,9 @@ import { EditPlaylistDialog } from './EditPlaylistDialog';
 import { PlaylistListItemDto, ListPlaylistsOptions } from '@/types';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
-interface PlaylistListProps {
-    onPlaylistClick?: (playlist: PlaylistListItemDto) => void;
-}
+export function PlaylistList() {
+    const router = useRouter();
 
-export function PlaylistList({ onPlaylistClick }: PlaylistListProps) {
     const {
         playlists,
         loading,
@@ -248,7 +247,7 @@ export function PlaylistList({ onPlaylistClick }: PlaylistListProps) {
                             playlist={playlist}
                             onEdit={handleEditPlaylist}
                             onDelete={deletePlaylist}
-                            onClick={onPlaylistClick}
+                            onClick={() => router.push(`/playlists/${playlist.id}`)}
                         />
                     ))}
                 </div>

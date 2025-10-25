@@ -34,7 +34,7 @@ const editPlaylistSchema = z.object({
 type EditPlaylistFormData = z.infer<typeof editPlaylistSchema>;
 
 interface EditPlaylistDialogProps {
-    playlist: PlaylistListItemDto;
+    playlist: { id: string; name: string };
     onUpdate: (id: string, data: { name?: string; description?: string | null }) => Promise<void>;
     onClose: () => void;
     isLoading?: boolean;
@@ -52,7 +52,7 @@ export function EditPlaylistDialog({
         resolver: zodResolver(editPlaylistSchema),
         defaultValues: {
             name: playlist.name,
-            description: '', // Note: description is not available in PlaylistListItemDto
+            description: '', // Note: description may not be available from minimal shape
         },
     });
 
