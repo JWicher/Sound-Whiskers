@@ -160,7 +160,7 @@ export function usePlaylist(playlistId: string): UsePlaylistState & UsePlaylistA
   const reorderTracks = useCallback(
     async (command: ReorderTracksExplicitCommand): Promise<void> => {
       try {
-        const res = await fetch(`/api/playlists/${playlistId}/tracks/reorder`, {
+        const res = await fetch(`/api/playlists/${playlistId}/tracks`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(command),
