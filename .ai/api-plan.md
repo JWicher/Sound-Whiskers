@@ -165,7 +165,7 @@ Conventions
 
 ### 2.4 Spotify Search
 
-- GET `/api/search/spotify`
+- GET `/api/spotify/search`
   - Description: Artist + partial title search using Spotify operators; market-filtered; deduped by track ID. Server-timeout 25s.
   - Query: `artist` (required), `title` (optional), `limit` (default 10, max 10), `market` (optional; default user market), `cursor` (opaque, optional) – typically no pagination per PRD.
   - Response 200:
@@ -333,7 +333,7 @@ Business Logic
 Security
 - RLS enabled on all tables; server-only access for `spotify_tokens`.
 - Encrypt Spotify tokens at rest using `pgp_sym_encrypt` with secret in Supabase Secrets; decrypt only server-side.
-- Rate limiting on `/api/search/spotify`, `/api/ai/generate`, and `/api/playlists/{id}/export/spotify` (e.g., token bucket per IP/user).
+- Rate limiting on `/api/spotify/search`, `/api/ai/generate`, and `/api/playlists/{id}/export/spotify` (e.g., token bucket per IP/user).
 - Verify webhooks (Stripe, OpenRouter if used) and enforce idempotency keys.
 - Least-privilege Spotify scopes: `playlist-modify-private` only.
 

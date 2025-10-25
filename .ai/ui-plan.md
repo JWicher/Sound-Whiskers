@@ -82,7 +82,7 @@ Sound Whiskers is a Next.js web application (App Router, RSC + Client Components
   - Inline 409 DUPLICATE on attempting to add an existing track
 - **Key view components**: `dialog`, `form`, `input`, `button`, `skeleton`, `scroll-area`, `alert`
 - **Related API endpoints**:
-  - `GET /api/search/spotify?artist=&title=&limit=10`
+  - `GET /api/spotify/search?artist=&title=&limit=10`
   - `POST /api/playlists/{id}/tracks` (append; optionally `insertAfterPosition`)
 - **UX, accessibility, and security considerations**:
   - Debounce and cancel previous requests. 429 message (“Try again in X s”). 504 timeout with a suggestion to retry. Clear focus states.

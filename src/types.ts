@@ -166,7 +166,7 @@ export interface ReorderTracksResponseDto {
 
 // === SPOTIFY SEARCH DTOS ===
 
-// GET /api/search/spotify (search result item)
+// GET /api/spotify/search (search result item)
 export interface SpotifySearchResultDto {
   trackId: string
   trackUri: string
@@ -175,7 +175,7 @@ export interface SpotifySearchResultDto {
   album: string
 }
 
-// GET /api/search/spotify
+// GET /api/spotify/search
 export interface SpotifySearchDto {
   items: SpotifySearchResultDto[]
 }
