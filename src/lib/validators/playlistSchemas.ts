@@ -66,3 +66,18 @@ export const updatePlaylistSchema = createPlaylistSchema.partial().refine(
 export type ListPlaylistsOptions = z.infer<typeof listPlaylistsQuerySchema>;
 export type CreatePlaylistCommand = z.infer<typeof createPlaylistSchema>;
 export type UpdatePlaylistCommand = z.infer<typeof updatePlaylistSchema>;
+
+// Spotify search query parameters
+export const spotifySearchQuerySchema = z.object({
+  artist: z.string().min(1, 'Artist is required').max(100),
+  title: z.string().max(100).optional(),
+  limit: z
+    .string()
+    .optional()
+    .transform((v) => (v ? Number(v) : 10))
+    .pipe(z.number().int().min(1).max(10)),
+  market: z.string().length(2).optional(), // ISO 3166-1 alpha-2
+  cursor: z.string().optional(),
+});
+
+export type SpotifySearchQuery = z.infer<typeof spotifySearchQuerySchema>;
