@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { AccountCard } from './AccountCard';
 import { PlanBillingCard } from './PlanBillingCard';
 import { UsageCard } from './UsageCard';
@@ -12,6 +15,34 @@ import { AlertCircle } from 'lucide-react';
 
 export function ProfileClient() {
     const { profile, isLoading, error } = useProfile();
+    const searchParams = useSearchParams();
+
+    // Handle Spotify OAuth success/error messages
+    useEffect(() => {
+        const spotifyParam = searchParams.get('spotify');
+        const errorParam = searchParams.get('error');
+        const details = searchParams.get('details');
+
+        if (spotifyParam === 'linked') {
+            toast.success('Spotify account linked successfully! You can now export playlists.');
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/profile');
+        } else if (errorParam?.startsWith('spotify_')) {
+            const errorMessages: Record<string, string> = {
+                'spotify_auth_denied': 'Spotify authorization was denied.',
+                'spotify_invalid_callback': 'Invalid Spotify callback. Please try again.',
+                'spotify_state_mismatch': 'Security validation failed. Please try again.',
+                'spotify_token_exchange_failed': 'Failed to link Spotify account.',
+            };
+
+            const message = errorMessages[errorParam] || 'Failed to link Spotify account.';
+            const fullMessage = details ? `${message} ${details}` : message;
+            toast.error(fullMessage);
+
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/profile');
+        }
+    }, [searchParams]);
 
     if (error) {
         return (

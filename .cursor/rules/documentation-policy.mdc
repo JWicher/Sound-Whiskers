@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+---
+
+# Documentation Policy
+
+## Do NOT Create Documentation Automatically
+
+**Unless the user explicitly asks for documentation, do NOT create any documentation files**, including:
+- Implementation plans
+- Verification documents
+- Summary files
+- Troubleshooting guides
+- Setup guides
+- Status files
+- Any `.md` files or documentation
+
+## When to Create Documentation
+
+Only create documentation when:
+1. The user explicitly asks: "Create documentation...", "Write a guide...", etc.
+2. The user requests a specific document type
+3. The user says "document this" or similar explicit request
+
+## Guidelines
+
+- Focus on code implementation and direct problem-solving
+- Keep notes and planning internal to the conversation
+- If you create something, ask first before saving it as a documentation file
+- Suggest documentation to the user if it would be helpful, but don't create it without permission

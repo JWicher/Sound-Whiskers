@@ -65,6 +65,49 @@ export class PlaylistService {
   async create(userId: string, command: CreatePlaylistCommand): Promise<PlaylistDto> {
     const { name, description } = command;
 
+    // Ensure user profile exists before creating playlist
+    // This handles cases where the profile creation trigger failed during signup
+    try {
+      const { data: profile, error: profileError } = await this.supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError || !profile) {
+        // Profile doesn't exist - try to create it
+        // Get user info to generate username
+        const { data: { user }, error: authError } = await this.supabase.auth.getUser();
+        
+        if (authError || !user) {
+          throw new ApiError(401, 'UNAUTHORIZED', 'Unable to verify user identity');
+        }
+
+        // Generate username from email or use fallback
+        const username = user.email 
+          ? user.email.split('@')[0].substring(0, 64) 
+          : 'User';
+
+        // Create the missing profile
+        const { error: createProfileError } = await this.supabase
+          .from('profiles')
+          .insert({
+            user_id: userId,
+            username: username,
+            plan: 'free',
+          });
+
+        if (createProfileError) {
+          throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to create user profile');
+        }
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to verify user profile');
+    }
+
     const { data, error } = await this.supabase
       .from('playlists')
       .insert({
