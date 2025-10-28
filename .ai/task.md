@@ -95,7 +95,7 @@
 - [ ] Defer rename/description to post‑MVP
 
 ### Export
-- [ ] Create private playlist with name `Sound Whiskers – YYYY‑MM‑DD`
+- [ ] Create private playlist with name given by user
 - [ ] Add description with attribution; add tracks
 - [ ] Note in UI: re‑export creates a new copy
 

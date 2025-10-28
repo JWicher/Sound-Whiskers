@@ -159,7 +159,7 @@ Acceptance Criteria:
 - use email contact: email@address.com.
 
 ### Playlist naming convention
-- use naming template: “Sound Whiskers – {YYYY-MM-DD}”.
+- use playlist name given by user
 
 ## Milestones & Timeline (3 weeks, 1 developer)
 - **Week 1**: Auth / Spotify linking / Search.

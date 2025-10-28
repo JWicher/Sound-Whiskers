@@ -238,7 +238,7 @@ Conventions
 ### 2.7 Export to Spotify
 
 - POST `/api/playlists/{playlistId}/export/spotify`
-  - Description: Create a new private playlist on Spotify with date suffix per naming template “Sound Whiskers – {YYYY-MM-DD}”. Not a sync; each export creates a new copy. 60s timeout.
+  - Description: Create a new private playlist on Spotify. For name use playlist name given by user. Not a sync; each export creates a new copy. 60s timeout.
   - Request:
     ```json
     { "description": "string|null" }
@@ -322,7 +322,7 @@ Business Logic
   - Add/remove adjusts positions accordingly; maintain uniqueness by `trackUri`.
   - On add, clients must provide `artist`, `title`, and `album` metadata (denormalized); server validates and persists. Reorder/delete do not modify metadata.
 - Export to Spotify
-  - Create new playlist each export; name template “Sound Whiskers – {YYYY-MM-DD}”.
+  - Create new playlist each export; use playlist name given by user while creating a playlist in the app.
   - Default private; include attribution in description.
   - Handle rate limiting and token refresh automatically; transactional semantics: best-effort insert; return count exported.
 - Billing

@@ -8,7 +8,7 @@ This document explains how Sound Whiskers implements Spotify OAuth 2.0 authoriza
 
 Users can authorize Sound Whiskers to access their Spotify account, allowing the app to:
 - Export playlists to the user's Spotify account
-- Create private playlists with the naming template "Sound Whiskers – {YYYY-MM-DD}"
+- Create private playlists with names given by user while creating a playlist in the app
 
 ## Environment Variables
 

@@ -89,7 +89,7 @@ Sound Whiskers is a Next.js web application (App Router, RSC + Client Components
 
 ### View: Export to Spotify (modal/flow)
 - **View path**: modal triggered from `/playlists/[id]`
-- **Primary goal**: Create a private playlist on Spotify with the suffix “Sound Whiskers – {YYYY‑MM‑DD}”.
+- **Primary goal**: Create a private playlist on Spotify with the name given by user while creating a playlist in the app.
 - **Key information to display**:
   - Spotify connection status (badge); optional Description field; note: “Re‑export creates a new copy”
 - **Key view components**: `dialog`, `form`, `input/textarea`, `button`, `badge`, `alert`, `toast`
