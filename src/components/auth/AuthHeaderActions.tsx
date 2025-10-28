@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LogOut, User, UserCircle } from 'lucide-react';
+import { List, LogOut, User, UserCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
@@ -84,6 +84,7 @@ export function AuthHeaderActions() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link href="/playlists" className="cursor-pointer">
+                        <List className="mr-2 h-4 w-4 text-muted-foreground" />
                         Playlists
                     </Link>
                 </DropdownMenuItem>

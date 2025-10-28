@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Calendar, Sparkles, List } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,10 +58,12 @@ export function UsageCard() {
                 {/* Playlists Usage */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <List className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Playlists</span>
-                        </div>
+                        <Link href="/playlists" className="cursor-pointer">
+                            <div className="flex items-center gap-2">
+                                <List className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">Playlists</span>
+                            </div>
+                        </Link>
                         <Badge variant={isPlaylistsNearLimit ? 'destructive' : 'secondary'}>
                             {usage.playlists.count} / {usage.playlists.limit === Infinity ? '∞' : usage.playlists.limit}
                         </Badge>

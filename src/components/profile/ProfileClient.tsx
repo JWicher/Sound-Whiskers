@@ -77,7 +77,7 @@ export function ProfileClient() {
     }
 
     return (
-        <div className="container max-w-6xl py-8 mx-auto">
+        <div className="container max-w-6xl py-8 px-4 mx-auto">
             <div className="space-y-6">
                 {/* Header */}
                 <div className="space-y-2">
