@@ -15,11 +15,12 @@ export const AppThemeContext = createContext<ThemeContextType | undefined>(undef
 const STORAGE_MODE_KEY = 'app-mode';
 
 interface ThemeProviderProps {
+    defaultTheme?: Mode;
     children: ReactNode;
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-    const [mode, setMode] = useState<Mode>('light');
+export function ThemeProvider({ defaultTheme = 'light', children }: ThemeProviderProps) {
+    const [mode, setMode] = useState<Mode>(defaultTheme);
     const [mounted, setMounted] = useState(false);
 
     // Load mode from localStorage on mount

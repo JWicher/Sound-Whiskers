@@ -75,6 +75,29 @@ npm run dev
 # open http://localhost:3000 in your browser
 ```
 
+### Testing
+
+```bash
+# Run unit and integration tests
+npm test
+
+# Run tests in watch mode (for development)
+npm run test:watch
+
+# Run tests with UI
+npm run test:ui
+
+# Generate coverage report
+npm run test:coverage
+
+# E2E tests (requires browser installation first)
+npm run playwright:install  # First time only
+npm run test:e2e
+npm run test:e2e:ui         # With UI mode
+```
+
+📖 **See [TESTING_SETUP.md](./TESTING_SETUP.md) for comprehensive testing guide and [tests/README.md](./tests/README.md) for detailed documentation.**
+
 To create an optimised production build:
 ```bash
 npm run build
