@@ -36,6 +36,12 @@ Sound Whiskers helps music lovers craft the perfect playlist in seconds. Create 
 **AI Services**
 - OpenRouter (LLM)
 
+**Testing**
+- Vitest (Unit & Integration tests)
+- React Testing Library
+- Playwright (E2E tests)
+- MSW (API mocking)
+
 **Tooling & DX**
 - ESLint, Prettier, TypeScript strict mode
 - Tailwind Merge, CVA, clsx
@@ -85,6 +91,8 @@ npm start
 | `build`       | Build the Next.js production bundle |
 | `start`       | Run the compiled production server |
 | `lint`        | Lint all source files with ESLint |
+| `test`        | Run unit and integration tests with Vitest |
+| `test:e2e`    | Run end-to-end tests with Playwright |
 
 ---
 

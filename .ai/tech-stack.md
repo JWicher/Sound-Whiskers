@@ -16,6 +16,13 @@
 **AI:**
 - OpenRouter (for LLM integration)
 
+**Testing:**
+- Vitest (Unit & Integration tests)
+- React Testing Library (Component testing)
+- Playwright (E2E tests across Chromium, WebKit, Firefox)
+- MSW (Mock Service Worker for API mocking)
+- axe-core (Accessibility testing)
+
 **CI/CD and Hosting:**
 - Vercel (recommended for MVP to save engineering time)
 - DigitalOcean (cost-efficient but adds ops time, with App Platform as a preferred option over raw droplets)
