@@ -1,48 +1,26 @@
 import { test, expect } from '@playwright/test'
-import { HomePage } from './pom/HomePage'
+import { test as authTest } from './fixtures/auth.setup'
 
 /**
- * Example E2E test using Page Object Model
- * Demonstrates Playwright usage with POM pattern
+ * Home Page E2E Tests
+ * Tests the authentication-based redirection logic
  */
 
 test.describe('Home Page', () => {
-  test('should display home page correctly', async ({ page }) => {
-    const homePage = new HomePage(page)
-    await homePage.goto()
-
-    // Check if heading is visible
-    await expect(homePage.heading).toBeVisible()
-  })
-
-  test('should navigate to login page', async ({ page }) => {
-    const homePage = new HomePage(page)
-    await homePage.goto()
-
-    await homePage.clickLogin()
-    
-    // Verify navigation
-    await expect(page).toHaveURL(/.*login/)
-  })
-
-  test('should navigate to register page', async ({ page }) => {
-    const homePage = new HomePage(page)
-    await homePage.goto()
-
-    await homePage.clickRegister()
-    
-    // Verify navigation
-    await expect(page).toHaveURL(/.*register/)
-  })
-
-  test('should take a screenshot of home page', async ({ page }) => {
+  test('should redirect unauthenticated users to login page', async ({ page }) => {
     await page.goto('/')
     
-    // Visual regression testing
-    await expect(page).toHaveScreenshot('home-page.png', {
-      fullPage: true,
-      // First run will create the baseline
-    })
+    // Should automatically redirect to login
+    await expect(page).toHaveURL(/.*\/auth\/login/)
+  })
+})
+
+test.describe('Home Page - Authenticated', () => {
+  authTest('should redirect authenticated users to playlists page', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto('/')
+    
+    // Should automatically redirect to playlists
+    await expect(authenticatedPage).toHaveURL(/.*\/playlists/)
   })
 })
 

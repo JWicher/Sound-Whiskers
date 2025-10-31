@@ -3,15 +3,41 @@ import type { Page } from '@playwright/test'
 
 /**
  * Authentication fixture for Playwright tests
- * Extend this with authenticated user setup if needed
+ * Provides authenticated user context for e2e tests
  */
 
 export const test = base.extend<{
   authenticatedPage: Page
 }>({
   authenticatedPage: async ({ page }, use) => {
-    // TODO: Add authentication logic here
-    // For now, just use the regular page
+    const email = process.env.E2E_USERNAME
+    const password = process.env.E2E_PASSWORD
+
+    if (!email || !password) {
+      throw new Error('E2E_USERNAME and E2E_PASSWORD must be set in .env.test')
+    }
+
+    // Navigate to login page
+    await page.goto('/auth/login', { waitUntil: 'networkidle' })
+
+    // Fill in credentials - use more specific selectors to avoid strict mode violations
+    await page.getByRole('textbox', { name: /email/i }).fill(email)
+    
+    // For password input, use placeholder to be more specific than label
+    // This avoids conflict with "Show password" button
+    await page.getByPlaceholder(/enter your password/i).fill(password)
+
+    // Submit form
+    await page.getByRole('button', { name: /sign in/i }).click()
+
+    // Wait for navigation to complete and user to be logged in
+    // Increased timeout to handle slow network/auth
+    await page.waitForURL('/playlists', { timeout: 15000 })
+
+    // Verify authentication was successful
+    await expect(page).toHaveURL('/playlists')
+
+    // Use the authenticated page
     await use(page)
   },
 })

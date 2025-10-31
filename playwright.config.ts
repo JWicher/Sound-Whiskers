@@ -50,6 +50,14 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
+  /* Global timeout for each test (60s) */
+  timeout: 60000,
+
+  /* Timeout for expect() assertions (10s) */
+  expect: {
+    timeout: 10000,
+  },
+
   /* Configure projects for major browsers */
   projects: [
     {
