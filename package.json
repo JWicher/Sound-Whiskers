@@ -56,6 +56,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/coverage-v8": "^4.0.5",
     "@vitest/ui": "^4.0.5",
     "dotenv": "^17.2.3",
     "eslint": "^8",
