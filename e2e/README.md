@@ -229,3 +229,28 @@ For detailed troubleshooting information, see [TROUBLESHOOTING.md](./TROUBLESHOO
   npx playwright test --update-snapshots
   ```
 
+### Screenshot tests fail in CI but pass locally
+
+This is a common issue due to environment differences (fonts, rendering, etc.). To fix:
+
+1. **Delete existing baseline screenshots:**
+   ```bash
+   rm -rf e2e/*.spec.ts-snapshots/
+   ```
+
+2. **Regenerate baselines locally:**
+   ```bash
+   npx playwright test --update-snapshots
+   ```
+
+3. **Commit the new baselines:**
+   ```bash
+   git add e2e/*.spec.ts-snapshots/
+   git commit -m "Update screenshot baselines for CI compatibility"
+   ```
+
+**Note:** The tests are now configured with:
+- `animations: 'disabled'` - Prevents animation timing issues
+- `maxDiffPixels` tolerance - Allows minor font rendering differences
+- `fullPage: false` for playlists page - Avoids dynamic content height issues
+
