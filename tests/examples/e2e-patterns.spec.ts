@@ -307,11 +307,6 @@ test.describe('Conditional Tests', () => {
     // Only this test will run (useful for debugging)
     expect(true).toBe(true)
   })
-
-  const skipOnCI = process.env.CI === 'true'
-  test.skip(skipOnCI, 'skip on CI', () => {
-    // Conditional skip
-  })
 })
 
 /**

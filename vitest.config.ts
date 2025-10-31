@@ -46,6 +46,7 @@ export default defineConfig({
       'dist',
       'build',
       'e2e',
+      'tests/examples/e2e-patterns.spec.ts',
     ],
   },
   resolve: {
