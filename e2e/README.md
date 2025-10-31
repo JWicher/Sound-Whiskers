@@ -168,6 +168,76 @@ Screenshots and videos are automatically captured on test failure and saved to:
 - `test-results/` - Test results and artifacts
 - `playwright-report/` - HTML report
 
+## Database Cleanup
+
+The test suite includes an **automatic database cleanup mechanism** that runs after all tests complete.
+
+### How It Works
+
+After all tests finish, the `global-teardown.ts` script automatically:
+
+1. ✅ Deletes all playlist tracks for the test user
+2. ✅ Deletes all playlists for the test user
+3. ✅ Deletes Spotify tokens for the test user
+4. ✅ Deletes AI sessions for the test user (main table + partitions)
+5. ⚠️ Attempts to delete the profile (may be restricted by RLS)
+
+### Configuration
+
+The teardown uses these environment variables from `.env.test`:
+- `NEXT_PUBLIC_SUPABASE_URL` - Test Supabase instance URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous/public key
+- `E2E_USERNAME_ID` - UUID of the test user to clean up
+
+### Viewing Cleanup Results
+
+After running tests, you'll see cleanup statistics in the console:
+
+```
+🧹 Starting database cleanup after E2E tests...
+
+🎯 Cleaning up data for user: f5b1b982-49fc-4fd7-8501-80e0e2bb9904
+
+📊 Cleanup Summary:
+─────────────────────────────────
+   Playlist Tracks: 5
+   Playlists:       3
+   Spotify Tokens:  1
+   AI Sessions:     2
+   Profiles:        0
+─────────────────────────────────
+   Total:           11
+
+✅ Database cleanup completed successfully!
+```
+
+### Manual Cleanup
+
+If you need to manually clean up the database, you can run the teardown script directly:
+
+```bash
+npx tsx e2e/global-teardown.ts
+```
+
+**Note:** This requires `.env.test` to be configured with valid credentials.
+
+### Troubleshooting Cleanup
+
+**Profile not deleted:**
+- This is expected behavior if RLS (Row Level Security) is properly configured
+- The anonymous key might not have permission to delete user profiles
+- This is a security feature and not a problem
+
+**Cleanup fails with permission errors:**
+- Verify `NEXT_PUBLIC_SUPABASE_ANON_KEY` is correct in `.env.test`
+- Check RLS policies in your test database
+- Ensure the test user exists
+
+**No data to clean up:**
+- Tests might not be creating persistent data
+- Data might be soft-deleted instead of hard-deleted
+- Cleanup from previous run was successful
+
 ## Configuration
 
 See `playwright.config.ts` for full configuration details.
@@ -180,6 +250,7 @@ Key settings:
 - Screenshots on failure
 - Video recording on failure
 - Trace recording on first retry
+- **Global teardown** enabled (`e2e/global-teardown.ts`)
 
 ## CI/CD
 
