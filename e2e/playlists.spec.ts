@@ -209,26 +209,10 @@ test.describe('Playlists Management', () => {
       await expect(playlistsPage.sortByRecentlyCreatedButton).toBeVisible()
     })
 
-    test('should take a screenshot of playlists page', async ({ authenticatedPage }) => {
-      const playlistsPage = new PlaylistsPage(authenticatedPage)
-      
-      // Wait for page to be fully loaded
-      await expect(playlistsPage.heading).toBeVisible()
-      
-      // Wait for playlists to load
-      await authenticatedPage.waitForLoadState('networkidle')
-      
-      // Wait for any loading states to complete
-      await authenticatedPage.waitForTimeout(500)
-      
-      // Visual regression testing - screenshot only viewport to avoid dynamic content height issues
-      await expect(authenticatedPage).toHaveScreenshot('playlists-page.png', {
-        fullPage: false, // Only screenshot viewport, not entire scrollable page
-        animations: 'disabled',
-        // Allow for font rendering differences across environments
-        maxDiffPixels: 500,
-      })
-    })
+    // Screenshot test removed: Visual regression testing is not suitable for pages with
+    // dynamic content that changes between test runs (timestamps, accumulating test data).
+    // The playlist page displays dynamically created playlists with unique names and
+    // timestamps, making consistent visual snapshots impractical.
   })
 })
 
