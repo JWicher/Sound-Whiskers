@@ -15,7 +15,7 @@ export class PlaylistService {
   }
 
   async list(userId: string, options: ListPlaylistsOptions): Promise<PlaylistListDto> {
-    const { page, pageSize, search, sort } = options;
+    const { page, pageSize, search, sort, isDeleted } = options;
 
     // Apply pagination bounds safeguard
     if (page * pageSize > 5000) {
@@ -33,6 +33,7 @@ export class PlaylistService {
         count: 'exact',
       })
       .eq('owner_id', userId)
+      .eq('is_deleted', isDeleted)
       .order(sortColumn, { ascending: sortDir === 'asc' })
       .range((page - 1) * pageSize, page * pageSize - 1);
 

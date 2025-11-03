@@ -29,7 +29,8 @@ interface UsePlaylistsReturn extends UsePlaylistsState, UsePlaylistsActions {}
 const DEFAULT_OPTIONS: ListPlaylistsOptions = {
   page: 1,
   pageSize: 10,
-  sort: 'updated_at.desc'
+  sort: 'updated_at.desc',
+  isDeleted: false
 };
 
 export function usePlaylists(): UsePlaylistsReturn {
@@ -59,6 +60,7 @@ export function usePlaylists(): UsePlaylistsReturn {
         page: mergedOptions.page.toString(),
         pageSize: mergedOptions.pageSize.toString(),
         sort: mergedOptions.sort,
+        isDeleted: mergedOptions.isDeleted.toString(),
         ...(mergedOptions.search && { search: mergedOptions.search })
       });
 

@@ -35,6 +35,14 @@ export const listPlaylistsQuerySchema = z
           message: 'Invalid sort option',
         }
       ),
+    isDeleted: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (v === undefined) return false;
+        return v === 'true';
+      })
+      .pipe(z.boolean()),
   })
   .transform((obj) => ({
     page: obj.page,
@@ -47,6 +55,7 @@ export const listPlaylistsQuerySchema = z
       | 'updated_at.desc'
       | 'name.asc'
       | 'name.desc',
+    isDeleted: obj.isDeleted,
   }));
 
 // Body for create playlist

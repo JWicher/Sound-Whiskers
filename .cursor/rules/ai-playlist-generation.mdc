@@ -1,0 +1,701 @@
+---
+alwaysApply: false
+description: Guidelines for implementing AI playlist generation using OpenAI SDK with structured outputs for the Sound Whiskers playlist generator feature
+---
+
+# AI Playlist Generation with OpenAI Structured Outputs
+
+This project uses the **OpenAI SDK** with **structured outputs** to implement the AI-powered playlist generation feature. This approach ensures type-safe, validated responses from the AI model.
+
+## ⚠️ PRO Plan Restriction
+
+**AI playlist generation is a PAID FEATURE** available only to users with the **PRO plan** (`plan = 'pro'` in their profile).
+
+- Free users (`plan = 'free'`) **CANNOT** access this feature
+- All AI generation endpoints **MUST** verify the user's plan before processing
+- Return HTTP 403 with error code `PRO_PLAN_REQUIRED` for unauthorized access
+- Check the user's plan from the `profiles` table: `plan` column (enum: `'free'` | `'pro'`)
+
+## Installation
+
+```bash
+npm install openai zod
+```
+
+## Environment Variables
+
+Add to `.env.local`:
+
+```env
+OPENAI_API_KEY=your_openai_api_key
+```
+
+## Core Implementation Pattern
+
+### Schema Definition
+
+Define the playlist generation schema using Zod. This schema represents the structure of AI-generated playlists based on the [PRD](.ai/prd.md):
+
+```typescript
+import { z } from "zod"
+
+// Individual track suggestion from AI
+const AITrackSchema = z.object({
+  artist: z.string().min(1).max(200),
+  title: z.string().min(1).max(200),
+  album: z.string().min(1).max(200),
+})
+
+// Complete AI playlist generation response
+const AIPlaylistSchema = z.object({
+  playlistName: z.string().min(1).max(120),
+  playlistDescription: z.string().max(500).optional(),
+  tracks: z.array(AITrackSchema).min(1).max(20),
+  summary: z.string().max(200).optional(),
+})
+
+type AIPlaylist = z.infer<typeof AIPlaylistSchema>
+```
+
+### API Route Implementation
+
+Create the playlist generation endpoint at `src/app/api/ai/generate/route.ts`:
+
+```typescript
+import OpenAI from "openai"
+import { zodTextFormat } from "openai/helpers/zod"
+import { z } from "zod"
+import { NextRequest, NextResponse } from "next/server"
+import { createServerClient } from "@/lib/supabase/server"
+
+// Use the schemas defined above
+const AITrackSchema = z.object({
+  artist: z.string().min(1).max(200),
+  title: z.string().min(1).max(200),
+  album: z.string().min(1).max(200),
+})
+
+const AIPlaylistSchema = z.object({
+  playlistName: z.string().min(1).max(120),
+  playlistDescription: z.string().max(500).optional(),
+  tracks: z.array(AITrackSchema).min(1).max(20),
+  summary: z.string().max(200).optional(),
+})
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    // 1. AUTHENTICATE USER
+    const supabase = await createServerClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // 2. AUTHORIZE - CHECK PRO PLAN (PAID FEATURE)
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      )
+    }
+
+    if (profile.plan !== 'pro') {
+      return NextResponse.json(
+        { 
+          error: 'AI playlist generation is only available for PRO plan users',
+          code: 'PRO_PLAN_REQUIRED'
+        },
+        { status: 403 }
+      )
+    }
+
+    // 3. VALIDATE INPUT
+    const { prompt } = await request.json()
+    
+    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Prompt is required' },
+        { status: 400 }
+      )
+    }
+
+    // Call OpenAI with structured output
+    const response = await openai.chat.completions.parse({
+      model: "gpt-4o-2024-08-06", // or "gpt-4o-mini" for cost efficiency
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert music curator that creates themed playlists. 
+Your task is to generate playlist suggestions based on user prompts about mood, theme, genre, occasion, time, or location.
+
+Rules:
+- ONLY create music playlists. Refuse any non-music requests politely.
+- Generate between 12 and 20 tracks maximum.
+- Support both English and Polish input languages.
+- Provide accurate artist names, song titles, and album names.
+- Create a creative playlist name and optional description.
+- Focus on real, existing songs from mainstream streaming platforms.
+
+If the request is not about music, respond with:
+"I can only help with music playlists. Here are some examples:
+- Create a playlist for a chill Sunday morning with acoustic and indie tones.
+- Make a road trip playlist that mixes modern rock, indie, and energetic pop.
+- Build a 10-song workout playlist with high tempo tracks from 2020 onwards."`,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: zodTextFormat(AIPlaylistSchema, "playlist_generation"),
+      },
+      temperature: 0.8, // PRD specifies 0.7-0.9
+      max_tokens: 450, // PRD specifies 350-500
+    })
+
+    const generatedPlaylist = response.choices[0].message.parsed
+
+    if (!generatedPlaylist) {
+      return NextResponse.json(
+        { error: 'Failed to generate playlist' },
+        { status: 500 }
+      )
+    }
+
+    // Transform to application format matching types.ts
+    return NextResponse.json({
+      sessionId: crypto.randomUUID(), // Generate session ID
+      summary: generatedPlaylist.summary,
+      items: generatedPlaylist.tracks.map(track => ({
+        artist: track.artist,
+        title: track.title,
+        album: track.album,
+      })),
+      count: generatedPlaylist.tracks.length,
+      warningUnderMinCount: generatedPlaylist.tracks.length < 12,
+    })
+    
+  } catch (error) {
+    console.error('AI playlist generation error:', error)
+    
+    if (error instanceof OpenAI.APIError) {
+      return NextResponse.json(
+        { error: 'OpenAI API error', details: error.message },
+        { status: error.status || 500 }
+      )
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to generate playlist' },
+      { status: 500 }
+    )
+  }
+}
+
+// Configure route runtime and timeout
+export const runtime = 'nodejs'
+export const maxDuration = 60 // PRD specifies 60s timeout for AI operations
+```
+
+## Best Practices
+
+### 1. Authentication & Authorization (REQUIRED)
+
+**ALWAYS** verify user authentication and PRO plan subscription before processing AI requests:
+
+```typescript
+// Step 1: Authenticate
+const supabase = await createServerClient()
+const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+if (authError || !user) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+}
+
+// Step 2: Authorize - Check PRO plan
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('plan')
+  .eq('user_id', user.id)
+  .single()
+
+if (profile?.plan !== 'pro') {
+  return NextResponse.json(
+    { 
+      error: 'AI playlist generation is only available for PRO plan users',
+      code: 'PRO_PLAN_REQUIRED'
+    },
+    { status: 403 }
+  )
+}
+```
+
+### 2. Timeout Handling
+
+According to the [PRD](.ai/prd.md), AI operations must have a **60-second timeout**:
+
+```typescript
+export const maxDuration = 60
+```
+
+### 3. Error Handling
+
+Implement proper error handling for:
+- Unauthenticated users (401)
+- Non-PRO users (403 with `PRO_PLAN_REQUIRED` code)
+- Invalid prompts (400)
+- API failures (500)
+- Timeout errors (504)
+- Non-music requests (refusal)
+
+### 4. Quota Management
+
+Track AI generation usage in the `ai_sessions` table. According to the PRD:
+- **Free plan**: 3 AI playlists/month (but feature is disabled, so this is never used)
+- **PRO plan**: 50 AI playlists/month
+
+```typescript
+// After successful generation, record the session
+await supabase.from('ai_sessions').insert({
+  user_id: userId,
+  prompt: prompt,
+  status: 'succeeded',
+  generated_tracks_count: generatedPlaylist.tracks.length,
+})
+
+// Check quota before generation (example)
+const startOfMonth = new Date()
+startOfMonth.setDate(1)
+startOfMonth.setHours(0, 0, 0, 0)
+
+const { count } = await supabase
+  .from('ai_sessions')
+  .select('*', { count: 'exact', head: true })
+  .eq('user_id', user.id)
+  .eq('status', 'succeeded')
+  .gte('created_at', startOfMonth.toISOString())
+
+const quota = profile.plan === 'pro' ? 50 : 3
+
+if (count && count >= quota) {
+  return NextResponse.json(
+    { error: 'Monthly AI generation quota exceeded', code: 'QUOTA_EXCEEDED' },
+    { status: 429 }
+  )
+}
+```
+
+### 5. Validation and Backfilling
+
+After receiving AI suggestions:
+1. Validate tracks exist in Spotify using market filter
+2. Deduplicate by track ID
+3. If fewer than 12 valid tracks, backfill using Spotify Recommendations API
+4. Set `warningUnderMinCount: true` if final count < 12
+
+### 6. Language Support
+
+The system prompt supports both **English and Polish** input as specified in the PRD.
+
+### 7. Model Configuration
+
+Based on the [PRD](.ai/prd.md):
+- **Model**: Use `gpt-4o-2024-08-06` or equivalent (PRD mentions GPT-4.1-Nano)
+- **Temperature**: 0.7 to 0.9 (use 0.8 as default)
+- **Max tokens**: 350–500 (use 450 as default)
+- **Output**: Maximum 20 tracks
+
+### 8. Cost Calculation and Tracking
+
+To track and optimize AI costs, calculate the cost of each prompt using token usage from the API response.
+
+#### Step 1: Extract Token Usage from API Response
+
+The OpenAI API response includes a `usage` field with token counts:
+
+```typescript
+const response = await openai.chat.completions.parse({
+  model: "gpt-4o-2024-08-06",
+  messages: [...],
+  // ... other parameters
+})
+
+// Access token usage
+const tokenUsage = response.usage
+console.log(tokenUsage)
+// Output:
+// {
+//   prompt_tokens: 542,
+//   completion_tokens: 278,
+//   total_tokens: 820
+// }
+```
+
+#### Step 2: Apply Model Pricing
+
+**GPT-4.1 Nano (GPT-4o-mini) Pricing:**
+- **Input tokens**: $0.20 per 1M tokens ($0.00000020 per token)
+- **Cached input tokens**: $0.05 per 1M tokens ($0.00000005 per token)
+- **Output tokens**: $0.80 per 1M tokens ($0.00000080 per token)
+- **Training**: $1.50 per 1M tokens (not applicable for our use case)
+
+#### Step 3: Calculate Cost
+
+```typescript
+function calculatePromptCost(usage: {
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+}) {
+  const INPUT_COST_PER_1K = 0.00020  // $0.20 per 1M = $0.00020 per 1K
+  const OUTPUT_COST_PER_1K = 0.00080 // $0.80 per 1M = $0.00080 per 1K
+  
+  const inputCost = (usage.prompt_tokens / 1000) * INPUT_COST_PER_1K
+  const outputCost = (usage.completion_tokens / 1000) * OUTPUT_COST_PER_1K
+  const totalCost = inputCost + outputCost
+  
+  return {
+    inputCost,
+    outputCost,
+    totalCost,
+    formattedCost: `$${totalCost.toFixed(6)}`
+  }
+}
+```
+
+#### Step 4: Implementation Example
+
+Integrate cost calculation into your API route:
+
+```typescript
+export async function POST(request: NextRequest) {
+  try {
+    // ... authentication and validation code ...
+
+    // Call OpenAI API
+    const response = await openai.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
+      messages: [...],
+      response_format: {...},
+      temperature: 0.8,
+      max_tokens: 450,
+    })
+
+    const generatedPlaylist = response.choices[0].message.parsed
+
+    if (!generatedPlaylist) {
+      return NextResponse.json(
+        { error: 'Failed to generate playlist' },
+        { status: 500 }
+      )
+    }
+
+    // Calculate cost
+    const cost = calculatePromptCost(response.usage!)
+    console.log(`Prompt cost: ${cost.formattedCost}`, {
+      inputTokens: response.usage!.prompt_tokens,
+      outputTokens: response.usage!.completion_tokens,
+      totalTokens: response.usage!.total_tokens,
+      inputCost: cost.inputCost,
+      outputCost: cost.outputCost,
+    })
+
+    // Optional: Store cost in database for analytics
+    await supabase.from('ai_sessions').insert({
+      user_id: user.id,
+      prompt: prompt,
+      status: 'succeeded',
+      generated_tracks_count: generatedPlaylist.tracks.length,
+      prompt_tokens: response.usage!.prompt_tokens,
+      completion_tokens: response.usage!.completion_tokens,
+      total_cost_usd: cost.totalCost, // Add this column to track costs
+    })
+
+    // Return response
+    return NextResponse.json({
+      sessionId: crypto.randomUUID(),
+      summary: generatedPlaylist.summary,
+      items: generatedPlaylist.tracks.map(track => ({
+        artist: track.artist,
+        title: track.title,
+        album: track.album,
+      })),
+      count: generatedPlaylist.tracks.length,
+      warningUnderMinCount: generatedPlaylist.tracks.length < 12,
+    })
+    
+  } catch (error) {
+    // ... error handling ...
+  }
+}
+```
+
+#### Real-World Cost Example
+
+For a typical playlist generation request:
+- **Prompt tokens**: 542 (system prompt + user prompt)
+- **Completion tokens**: 278 (AI-generated playlist with ~15 tracks)
+- **Total tokens**: 820
+
+**Cost breakdown:**
+```
+Input cost:  (542 / 1000) × $0.00020 = $0.0001084
+Output cost: (278 / 1000) × $0.00080 = $0.0002224
+Total cost:  $0.0003308 ≈ $0.00033 per request
+```
+
+**Monthly cost estimates:**
+- **Free plan** (3 generations/month): ~$0.001
+- **PRO plan** (50 generations/month): ~$0.017
+
+#### Database Schema Update
+
+To track costs, add these columns to the `ai_sessions` table:
+
+```sql
+ALTER TABLE ai_sessions
+ADD COLUMN prompt_tokens INTEGER,
+ADD COLUMN completion_tokens INTEGER,
+ADD COLUMN total_cost_usd DECIMAL(10, 8);
+```
+
+#### Cost Monitoring Best Practices
+
+1. **Log all costs**: Always log token usage and costs for monitoring
+2. **Set up alerts**: Monitor unexpected cost spikes
+3. **Track per-user costs**: Identify heavy users or abuse patterns
+4. **Optimize prompts**: Reduce system prompt length where possible
+5. **Use caching**: If OpenAI supports prompt caching, utilize it to get 75% discount on cached input tokens
+6. **Consider model alternatives**: GPT-4o-mini is cost-effective; compare with other models if costs become an issue
+
+## Type Safety
+
+The generated response automatically matches these types from [types.ts](src/types.ts):
+
+```typescript
+interface GeneratePlaylistCommand {
+  prompt: string
+}
+
+interface AISuggestedTrack {
+  artist: string
+  title: string
+  album: string
+}
+
+interface GeneratePlaylistResponseDto {
+  sessionId: string
+  summary?: string | null
+  items: AISuggestedTrack[]
+  count: number
+  warningUnderMinCount: boolean
+}
+```
+
+## Example Prompts (from PRD)
+
+Users can provide prompts like:
+- "Create a playlist for a chill Sunday morning with acoustic and indie tones."
+- "Create a playlist for a cozy rainy evening. I want mellow acoustic and lo-fi songs that feel warm and nostalgic."
+- "Make a road trip playlist that mixes modern rock, indie, and energetic pop."
+- "Imagine a mustached jazz cat DJing at a 1920s speakeasy. Create a playlist he would spin."
+- "Build a 10-song playlist for workout motivation with no songs older than 2020."
+
+## Refusal Pattern
+
+For non-music requests, the AI will respond with a refusal and examples:
+
+```
+I can only help with music playlists. Here are some examples:
+- Create a playlist for a chill Sunday morning with acoustic and indie tones.
+- Make a road trip playlist that mixes modern rock, indie, and energetic pop.
+- Build a 10-song workout playlist with high tempo tracks from 2020 onwards.
+```
+
+## Frontend UI Guidelines
+
+### Handling PRO Plan Restrictions
+
+Show appropriate UI states based on user's plan:
+
+```typescript
+import { useProfile } from '@/lib/hooks/useProfile'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+
+function AIPlaylistGenerator() {
+  const { profile, isLoading } = useProfile()
+  const isPro = profile?.plan === 'pro'
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!isPro) {
+    return (
+      <Alert>
+        <AlertDescription>
+          AI playlist generation is available for PRO plan users.
+          <Button asChild className="ml-2">
+            <a href="/profile#billing">Upgrade to PRO</a>
+          </Button>
+        </AlertDescription>
+      </Alert>
+    )
+  }
+
+  return (
+    <div>
+      {/* AI playlist generation form */}
+    </div>
+  )
+}
+```
+
+### Error Handling in Frontend
+
+Handle the 403 error when non-PRO users somehow access the API:
+
+```typescript
+async function generatePlaylist(prompt: string) {
+  try {
+    const response = await fetch('/api/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    })
+
+    if (response.status === 403) {
+      const data = await response.json()
+      if (data.code === 'PRO_PLAN_REQUIRED') {
+        toast.error('This feature requires a PRO plan. Please upgrade.')
+        // Optionally redirect to billing page
+        router.push('/profile#billing')
+        return
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error('Failed to generate playlist')
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    toast.error('Failed to generate playlist')
+    throw error
+  }
+}
+```
+
+## Testing
+
+### Test PRO Plan Authorization
+
+Always test that the endpoint properly restricts access to PRO users:
+
+```typescript
+import { describe, it, expect } from 'vitest'
+
+describe('POST /api/ai/generate', () => {
+  it('returns 401 for unauthenticated users', async () => {
+    const response = await fetch('/api/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: 'test' }),
+    })
+    
+    expect(response.status).toBe(401)
+  })
+
+  it('returns 403 for free plan users', async () => {
+    // Mock authenticated user with free plan
+    const response = await fetch('/api/ai/generate', {
+      method: 'POST',
+      headers: { /* auth headers */ },
+      body: JSON.stringify({ prompt: 'test' }),
+    })
+    
+    expect(response.status).toBe(403)
+    const data = await response.json()
+    expect(data.code).toBe('PRO_PLAN_REQUIRED')
+  })
+
+  it('successfully generates playlist for PRO users', async () => {
+    // Mock authenticated user with PRO plan
+    const response = await fetch('/api/ai/generate', {
+      method: 'POST',
+      headers: { /* auth headers */ },
+      body: JSON.stringify({ prompt: 'Chill Sunday morning' }),
+    })
+    
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data.items).toBeDefined()
+    expect(data.items.length).toBeGreaterThan(0)
+  })
+})
+```
+
+### Mock OpenAI Responses
+
+Mock OpenAI responses in tests using MSW:
+
+```typescript
+import { http, HttpResponse } from 'msw'
+
+export const handlers = [
+  http.post('https://api.openai.com/v1/chat/completions', async () => {
+    return HttpResponse.json({
+      choices: [{
+        message: {
+          parsed: {
+            playlistName: "Chill Sunday Morning",
+            tracks: [
+              { artist: "Bon Iver", title: "Holocene", album: "Bon Iver" },
+              // ... more tracks
+            ]
+          }
+        }
+      }]
+    })
+  })
+]
+```
+
+## Related Files
+
+- [types.ts](src/types.ts) - Type definitions for AI responses
+- [prd.md](.ai/prd.md) - Product requirements for AI features
+- [api-plan.md](.ai/api-plan.md) - API architecture details
+- Database migrations for `ai_sessions` table in [supabase/migrations](supabase/migrations)
+
+## Security Considerations
+
+### Critical: PRO Plan Enforcement
+- **ALWAYS** check `profile.plan === 'pro'` before processing any AI request
+- Return 403 Forbidden with `PRO_PLAN_REQUIRED` error code for non-PRO users
+- Verify plan status on EVERY request (don't cache plan status client-side)
+- Enforce at the API layer, not just UI layer (UI can hide features, but API must validate)
+
+### Additional Security
+- Store API keys in environment variables (never commit)
+- Implement rate limiting (5 requests/min per user recommended)
+- Log all AI requests for debugging and quota tracking
+- Use Supabase RLS to protect `ai_sessions` table access (ensure users can only read their own sessions)
+- The `profiles.plan` column should only be updatable via Stripe webhook handlers

@@ -76,6 +76,7 @@ export interface ListPlaylistsOptions {
   pageSize: number
   search?: string
   sort: string // Format: 'column.direction' (e.g., 'name.asc', 'created_at.desc')
+  isDeleted: boolean // Filter for soft-deleted playlists
 }
 
 // GET /api/playlists (list item)
@@ -198,11 +199,14 @@ export interface AISuggestedTrack {
   artist: string
   title: string
   album: string
+  trackUri: string
 }
 
 // POST /api/ai/generate response
 export interface GeneratePlaylistResponseDto {
   sessionId: string
+  playlistName?: string
+  playlistDescription?: string | null
   summary?: string | null
   items: AISuggestedTrack[]
   count: number

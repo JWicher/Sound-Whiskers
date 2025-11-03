@@ -14,6 +14,11 @@ export class PlaylistsPage {
   readonly sortByNameButton: Locator
   readonly sortByRecentlyCreatedButton: Locator
 
+  // Tab elements for deleted/non-deleted playlists
+  readonly activePlaylistsTab: Locator
+  readonly deletedPlaylistsTab: Locator
+  readonly tabsList: Locator
+
   // Dialog elements
   readonly createDialogTitle: Locator
   readonly playlistNameInput: Locator
@@ -30,6 +35,11 @@ export class PlaylistsPage {
     this.sortByRecentlyUpdatedButton = page.getByRole('button', { name: /recently updated/i })
     this.sortByNameButton = page.getByRole('button', { name: /name a-z/i })
     this.sortByRecentlyCreatedButton = page.getByRole('button', { name: /recently created/i })
+
+    // Tab elements - for switching between active and deleted playlists
+    this.tabsList = page.locator('[role="tablist"]')
+    this.activePlaylistsTab = page.getByRole('tab', { name: /active playlists/i })
+    this.deletedPlaylistsTab = page.getByRole('tab', { name: /deleted playlists|trash/i })
 
     // Dialog elements (these will be visible only when dialog is open)
     this.createDialogTitle = page.getByRole('heading', { name: /create new playlist/i })
@@ -85,6 +95,41 @@ export class PlaylistsPage {
    */
   async searchPlaylists(query: string) {
     await this.searchInput.fill(query)
+  }
+
+  /**
+   * Click on the active playlists tab to show non-deleted playlists
+   */
+  async clickActivePlaylistsTab() {
+    await this.activePlaylistsTab.click()
+  }
+
+  /**
+   * Click on the deleted playlists tab to show soft-deleted playlists
+   */
+  async clickDeletedPlaylistsTab() {
+    await this.deletedPlaylistsTab.click()
+  }
+
+  /**
+   * Get the currently selected tab
+   */
+  async getActiveTab() {
+    return await this.page.locator('[role="tab"][aria-selected="true"]').textContent()
+  }
+
+  /**
+   * Check if active playlists tab is currently selected
+   */
+  async isActivePlaylistsTabSelected() {
+    return await this.activePlaylistsTab.evaluate((el) => el.getAttribute('aria-selected') === 'true')
+  }
+
+  /**
+   * Check if deleted playlists tab is currently selected
+   */
+  async isDeletedPlaylistsTabSelected() {
+    return await this.deletedPlaylistsTab.evaluate((el) => el.getAttribute('aria-selected') === 'true')
   }
 
   /**
