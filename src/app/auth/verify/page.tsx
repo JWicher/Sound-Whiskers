@@ -38,20 +38,13 @@ export default function VerifyPage() {
                         return;
                     }
 
-                    setStatus('success');
-                    // Redirect to playlists after a brief delay
-                    setTimeout(() => {
-                        router.push('/playlists');
-                    }, 2000);
+                    router.push('/playlists');
                 } else {
                     // No token in URL, check if already authenticated
                     const { data: { session } } = await supabase.auth.getSession();
 
                     if (session) {
-                        setStatus('success');
-                        setTimeout(() => {
-                            router.push('/playlists');
-                        }, 2000);
+                        router.push('/playlists');
                     } else {
                         setStatus('error');
                         setErrorMessage('No verification token found. Please check your email for a valid link.');

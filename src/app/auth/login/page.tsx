@@ -39,7 +39,6 @@ export default function LoginPage() {
                 return;
             }
 
-            toast.success('Welcome back!');
             router.push('/playlists');
         } catch (error) {
             toast.error('An error occurred. Please try again.');
