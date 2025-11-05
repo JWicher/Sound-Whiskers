@@ -40,7 +40,7 @@ export function CreatePlaylistDialog({
     const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('manual');
     const [dialogInstanceId, setDialogInstanceId] = useState(0);
 
-    const { profile, isLoading: isLoadingProfile, refresh: refetchProfile } = useProfile();
+    const { profile, isLoading: isLoadingProfile } = useProfile();
 
     const isPro = profile?.plan === 'pro';
 
@@ -82,14 +82,9 @@ export function CreatePlaylistDialog({
     };
 
     const handleTabChange = async (tab: 'manual' | 'ai') => {
-        if (tab === 'ai') {
-            const updatedProfile = await refetchProfile();
-            const effectiveProfile = updatedProfile ?? profile;
-
-            if (effectiveProfile?.plan !== 'pro') {
-                toast.error('Upgrade to Pro to use AI playlist generation');
-                return;
-            }
+        if (tab === 'ai' && profile?.plan !== 'pro') {
+            toast.error('Upgrade to Pro to use AI playlist generation');
+            return;
         } else {
             reset();
         }
