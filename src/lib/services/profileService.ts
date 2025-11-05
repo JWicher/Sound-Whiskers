@@ -36,7 +36,7 @@ export class ProfileService {
     try {
       const { data, error } = await this.supabase
         .from('profiles')
-        .select('user_id, username, plan, created_at, updated_at')
+        .select('user_id, username, plan, pro_expires_at, created_at, updated_at')
         .eq('user_id', userId)
         .single();
 
@@ -52,6 +52,7 @@ export class ProfileService {
         userId: data.user_id,
         username: data.username,
         plan: data.plan,
+        proExpiresAt: data.pro_expires_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -90,7 +91,7 @@ export class ProfileService {
           username: username,
           plan: 'free' as PlanType,
         })
-        .select('user_id, username, plan, created_at, updated_at')
+        .select('user_id, username, plan, pro_expires_at, created_at, updated_at')
         .single();
 
       if (error) {
@@ -101,6 +102,7 @@ export class ProfileService {
         userId: data.user_id,
         username: data.username,
         plan: data.plan,
+        proExpiresAt: data.pro_expires_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -135,7 +137,7 @@ export class ProfileService {
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId)
-        .select('user_id, username, plan, created_at, updated_at')
+        .select('user_id, username, plan, pro_expires_at, created_at, updated_at')
         .single();
 
       if (error) {
@@ -154,6 +156,7 @@ export class ProfileService {
         userId: data.user_id,
         username: data.username,
         plan: data.plan,
+        proExpiresAt: data.pro_expires_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -342,3 +345,62 @@ export class ProfileService {
 }
 
 export const profileService = new ProfileService();
+
+/**
+ * Checks if user's Pro plan has expired and downgrades to Free if necessary.
+ * This function is called only in strategic places:
+ * - Profile endpoint (GET /api/profile)
+ * - AI dialog opening (CreatePlaylistDialog component)
+ * - AI generation endpoint (POST /api/ai/generate)
+ * 
+ * @param userId - Supabase user ID
+ * @returns true if downgrade was performed, false otherwise
+ */
+export async function checkAndDowngradeIfExpired(userId: string): Promise<boolean> {
+  const supabase = createClient();
+  
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('plan, pro_expires_at')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !profile) {
+      console.error('Failed to check pro expiration:', error);
+      return false;
+    }
+    
+    // Check if Pro plan has expired
+    const isExpired = 
+      profile.plan === 'pro' && 
+      profile.pro_expires_at && 
+      new Date(profile.pro_expires_at) < new Date();
+    
+    if (isExpired) {
+      // Downgrade to Free
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          plan: 'free',
+          pro_expires_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId);
+      
+      if (updateError) {
+        console.error('Failed to downgrade expired Pro plan:', updateError);
+        return false;
+      }
+      
+      console.log(`User ${userId} downgraded from Pro to Free (expired: ${profile.pro_expires_at})`);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking/downgrading expired plan:', error);
+    return false;
+  }
+}
+

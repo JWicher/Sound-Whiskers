@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { profileService } from '@/lib/services/profileService';
+import { profileService, checkAndDowngradeIfExpired } from '@/lib/services/profileService';
 import { handleApiError } from '@/lib/errors/handleApiError';
 import { updateProfileSchema } from '@/lib/validators/profileSchemas';
 import { createClient } from '@/lib/supabase/server';
@@ -18,6 +18,9 @@ export async function GET() {
         { status: 401 }
       );
     }
+
+    // Check and downgrade if Pro plan has expired
+    await checkAndDowngradeIfExpired(user.id);
 
     const profileDto = await profileService.getProfile(user.id);
     return NextResponse.json(profileDto);

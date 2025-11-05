@@ -17,17 +17,38 @@ export function ProfileClient() {
     const { profile, isLoading, error } = useProfile();
     const searchParams = useSearchParams();
 
-    // Handle Spotify OAuth success/error messages
+    // Handle Spotify OAuth and Stripe checkout success/error messages
     useEffect(() => {
         const spotifyParam = searchParams.get('spotify');
         const errorParam = searchParams.get('error');
         const details = searchParams.get('details');
+        const successParam = searchParams.get('success');
+        const canceledParam = searchParams.get('canceled');
 
-        if (spotifyParam === 'linked') {
+        // Handle Stripe checkout success
+        if (successParam === 'true') {
+            toast.success('Successfully upgraded to Pro! Your account has been updated.', {
+                duration: 5000,
+            });
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/profile');
+        }
+        // Handle Stripe checkout cancellation
+        else if (canceledParam === 'true') {
+            toast.info('Payment was canceled. You can try again anytime.', {
+                duration: 4000,
+            });
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/profile');
+        }
+        // Handle Spotify OAuth success
+        else if (spotifyParam === 'linked') {
             toast.success('Spotify account linked successfully! You can now export playlists.');
             // Clean up URL
             window.history.replaceState({}, document.title, '/profile');
-        } else if (errorParam?.startsWith('spotify_')) {
+        }
+        // Handle Spotify OAuth errors
+        else if (errorParam?.startsWith('spotify_')) {
             const errorMessages: Record<string, string> = {
                 'spotify_auth_denied': 'Spotify authorization was denied.',
                 'spotify_invalid_callback': 'Invalid Spotify callback. Please try again.',

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe/client';
 import {
@@ -79,15 +80,18 @@ export async function POST(request: NextRequest) {
     // Get price ID based on payment method
     const priceId = getPriceId(paymentMethod);
 
-    // Determine payment method types and locale
+    // Determine payment method types, locale, and mode
     const paymentMethodTypes: ('card' | 'blik')[] =
       paymentMethod === 'blik' ? ['blik'] : ['card'];
     const locale = paymentMethod === 'blik' ? 'pl' : 'auto';
+    // BLIK uses one-time payment, Card uses subscription
+    const mode = paymentMethod === 'blik' ? 'payment' : 'subscription';
 
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+      mode,
       customer: customerId,
+      customer_update: { address: "auto" },
       line_items: [
         {
           price: priceId,
@@ -99,11 +103,12 @@ export async function POST(request: NextRequest) {
       automatic_tax: {
         enabled: true,
       },
-      locale: locale as any,
+      locale: locale as Stripe.Checkout.SessionCreateParams.Locale,
       success_url: sanitizedSuccessUrl,
       cancel_url: sanitizedCancelUrl,
       metadata: {
         user_id: user.id,
+        payment_method: paymentMethod,
       },
     });
 

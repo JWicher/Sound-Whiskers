@@ -6,8 +6,8 @@ import {
   markEventProcessed,
   updateUserPlan,
   setStripeCustomerId,
+  updateUserPlanWithExpiry,
 } from '@/lib/stripe/utils';
-import { createClient } from '@/lib/supabase/server';
 
 // Force Node.js runtime for Stripe webhook handling
 export const runtime = 'nodejs';
@@ -15,11 +15,13 @@ export const runtime = 'nodejs';
 /**
  * POST /api/webhooks/stripe
  * 
- * Handles Stripe webhook events for subscription management.
+ * Handles Stripe webhook events for both subscription and one-time payment management.
  * Processes events like checkout completion, subscription updates, and deletions.
  * 
  * Events handled:
  * - checkout.session.completed: Set customer ID and upgrade to Pro
+ *   - For subscriptions (Card): Pro until subscription ends
+ *   - For one-time payments (BLIK): Pro lazy downgrade until 30 days after payment
  * - customer.subscription.updated: Update plan based on subscription status
  * - customer.subscription.deleted: Downgrade to Free
  * - invoice.payment_failed: Log for monitoring (no immediate action)
@@ -98,12 +100,23 @@ export async function POST(request: NextRequest) {
         if (session.customer && session.metadata?.user_id) {
           const customerId = session.customer as string;
           const userId = session.metadata.user_id;
+          const paymentMethod = session.metadata?.payment_method;
 
-          // Set customer ID and upgrade to Pro
+          // Set customer ID
           await setStripeCustomerId(userId, customerId);
-          await updateUserPlan(customerId, 'pro');
 
-          console.log(`User ${userId} upgraded to Pro, customer ${customerId}`);
+          // For one-time payment (BLIK) - set expiration date to +30 days
+          if (paymentMethod === 'blik' && session.mode === 'payment') {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30);
+            await updateUserPlanWithExpiry(customerId, 'pro', expiresAt);
+            console.log(`User ${userId} upgraded to Pro (expires: ${expiresAt.toISOString()})`);
+          } 
+          // For subscription (Card) - no expiration date
+          else {
+            await updateUserPlanWithExpiry(customerId, 'pro', null);
+            console.log(`User ${userId} upgraded to Pro (subscription, no expiration)`);
+          }
         }
         break;
       }

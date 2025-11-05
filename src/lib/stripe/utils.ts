@@ -5,7 +5,7 @@
  */
 
 import { stripe } from './client';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 /**
  * Validates and sanitizes a URL to prevent open redirects
@@ -53,7 +53,7 @@ export async function getOrCreateStripeCustomer(
   const { data: profile } = await supabase
     .from('profiles')
     .select('stripe_customer_id')
-    .eq('id', userId)
+    .eq('user_id', userId)
     .single();
 
   if (profile?.stripe_customer_id) {
@@ -72,7 +72,7 @@ export async function getOrCreateStripeCustomer(
   await supabase
     .from('profiles')
     .update({ stripe_customer_id: customer.id })
-    .eq('id', userId);
+    .eq('user_id', userId);
 
   return customer.id;
 }
@@ -104,7 +104,8 @@ export function getPriceId(paymentMethod: 'card' | 'blik' = 'card'): string {
  * @returns true if event was already processed
  */
 export async function isEventProcessed(eventId: string): Promise<boolean> {
-  const supabase = createClient();
+  // Use admin client for webhook operations (no user session context)
+  const supabase = createAdminClient();
 
   const { data } = await supabase
     .from('stripe_events')
@@ -120,7 +121,8 @@ export async function isEventProcessed(eventId: string): Promise<boolean> {
  * @param eventId - Stripe event ID
  */
 export async function markEventProcessed(eventId: string): Promise<void> {
-  const supabase = createClient();
+  // Use admin client for webhook operations (no user session context)
+  const supabase = createAdminClient();
 
   await supabase
     .from('stripe_events')
@@ -136,7 +138,8 @@ export async function updateUserPlan(
   customerId: string,
   plan: 'free' | 'pro'
 ): Promise<void> {
-  const supabase = createClient();
+  // Use admin client for webhook operations (no user session context)
+  const supabase = createAdminClient();
 
   await supabase
     .from('profiles')
@@ -153,11 +156,37 @@ export async function setStripeCustomerId(
   userId: string,
   customerId: string
 ): Promise<void> {
-  const supabase = createClient();
+  // Use admin client for webhook operations (no user session context)
+  const supabase = createAdminClient();
 
   await supabase
     .from('profiles')
     .update({ stripe_customer_id: customerId })
-    .eq('id', userId);
+    .eq('user_id', userId);
+}
+
+/**
+ * Updates user plan with optional expiration date
+ * Used for handling both subscription (no expiry) and one-time payments (with expiry)
+ * @param customerId - Stripe customer ID
+ * @param plan - Plan type ('free' or 'pro')
+ * @param expiresAt - Expiration date (null for unlimited/subscription)
+ */
+export async function updateUserPlanWithExpiry(
+  customerId: string,
+  plan: 'free' | 'pro',
+  expiresAt: Date | null
+): Promise<void> {
+  // Use admin client for webhook operations (no user session context)
+  const supabase = createAdminClient();
+
+  await supabase
+    .from('profiles')
+    .update({ 
+      plan,
+      pro_expires_at: expiresAt ? expiresAt.toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('stripe_customer_id', customerId);
 }
 

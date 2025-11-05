@@ -45,6 +45,7 @@ export interface ProfileDto {
   userId: string
   username: string
   plan: PlanType
+  proExpiresAt: string | null
   createdAt: string
   updatedAt: string
 }

@@ -62,7 +62,7 @@ export function CreatePlaylistDialog({
     const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('manual');
     const [aiPreview, setAiPreview] = useState<GeneratePlaylistResponseDto | null>(null);
     const [showPreview, setShowPreview] = useState(false);
-    const { profile, isLoading: isLoadingProfile } = useProfile();
+    const { profile, isLoading: isLoadingProfile, refresh: refetchProfile } = useProfile();
 
     const isPro = profile?.plan === 'pro';
 
@@ -80,6 +80,21 @@ export function CreatePlaylistDialog({
             prompt: '',
         },
     });
+
+    const handleTabChange = async (tab: string) => {
+        // If switching to AI tab, check if Pro plan is still valid
+        if (tab === 'ai') {
+            // Refetch profile to check for plan expiration
+            await refetchProfile();
+
+            if (!isPro) {
+                toast.error('Upgrade to Pro to use AI playlist generation');
+                return; // Don't switch to AI tab
+            }
+        }
+
+        setActiveTab(tab as 'manual' | 'ai');
+    };
 
     const onManualSubmit = async (data: CreatePlaylistFormData) => {
         setIsSubmitting(true);
@@ -259,7 +274,7 @@ export function CreatePlaylistDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'manual' | 'ai')} className="w-full">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="manual">
                             <Plus className="mr-2 h-4 w-4" />

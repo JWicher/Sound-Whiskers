@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { handleApiError } from "@/lib/errors/handleApiError";
 import { ApiError } from "@/lib/errors/ApiError";
 import { getSpotifyAccessToken } from "@/lib/utils";
+import { checkAndDowngradeIfExpired } from "@/lib/services/profileService";
 
 // Define schemas for AI playlist generation
 const AITrackSchema = z.object({
@@ -144,6 +145,17 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       throw new ApiError(401, "Unauthorized", "UNAUTHORIZED");
+    }
+
+    // 1.1. CHECK AND DOWNGRADE IF PRO PLAN EXPIRED
+    const wasDowngraded = await checkAndDowngradeIfExpired(user.id);
+    
+    if (wasDowngraded) {
+      throw new ApiError(
+        403,
+        "Your Pro plan has expired. Please upgrade to continue using AI features.",
+        "PLAN_EXPIRED"
+      );
     }
 
     // 2. AUTHORIZE - CHECK PRO PLAN (PAID FEATURE)

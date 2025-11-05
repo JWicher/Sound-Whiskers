@@ -39,6 +39,9 @@ STRIPE_PRICE_PRO_CARD=price_...
 
 # Stripe Pro Plan Price ID for BLIK payments (PLN)
 # Get from: Stripe Dashboard > Products > Pro Subscription > Price ID
+# Can be either:
+#   - RECURRING (monthly/yearly) - recommended for subscription model
+#   - ONE-TIME - for single payment (grants Pro plan for a month + lazy downgrade)
 STRIPE_PRICE_PRO_BLIK=price_...
 
 # Stripe Webhook Secret

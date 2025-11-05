@@ -7,6 +7,7 @@ function isPublicPath(pathname: string): boolean {
   if (pathname === '/') return true; // landing page
   if (pathname.startsWith('/auth/')) return true; // auth pages
   if (pathname.startsWith('/api/auth/')) return true; // auth API endpoints
+  if (pathname.startsWith('/api/webhooks/')) return true; // webhook endpoints
   return false;
 }
 
