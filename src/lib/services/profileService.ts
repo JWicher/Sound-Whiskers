@@ -367,6 +367,12 @@ export async function checkAndDowngradeIfExpired(userId: string): Promise<boolea
       .single();
     
     if (error || !profile) {
+      // Profile might not exist yet (race condition during user creation)
+      // This is expected and not an error - just return false
+      if (error?.code === 'PGRST116') {
+        // "Cannot coerce result to a single JSON object" - profile doesn't exist yet
+        return false;
+      }
       console.error('Failed to check pro expiration:', error);
       return false;
     }

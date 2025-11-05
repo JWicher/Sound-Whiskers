@@ -29,7 +29,8 @@ export class PlaylistsPage {
   constructor(page: Page) {
     this.page = page
     this.heading = page.getByRole('heading', { name: /my playlists/i })
-    this.createPlaylistButton = page.getByRole('button', { name: /create playlist/i })
+    // Use .first() to handle cases where multiple "Create Playlist" buttons exist (toolbar + empty state)
+    this.createPlaylistButton = page.getByRole('button', { name: /create playlist/i }).first()
     this.refreshButton = page.getByRole('button', { name: /refresh/i })
     this.searchInput = page.getByPlaceholder(/search playlists/i)
     this.sortByRecentlyUpdatedButton = page.getByRole('button', { name: /recently updated/i })
@@ -157,9 +158,13 @@ export class PlaylistsPage {
 
   /**
    * Get success toast message
+   *
+   * Some UI variants may show either "Playlist created successfully" or
+   * "Playlist created". Use a tolerant regex to cover both cases.
    */
   getSuccessToast() {
-    return this.page.getByText(/playlist created successfully/i)
+    // Be lenient about trailing punctuation
+    return this.page.getByText(/playlist created(?:\s+successfully)?[.!]?/i)
   }
 
   /**

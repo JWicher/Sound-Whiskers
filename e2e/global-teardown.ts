@@ -21,6 +21,8 @@ async function globalTeardown() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const e2eUserId = process.env.E2E_USERNAME_ID
+  const e2eUsername = process.env.E2E_USERNAME
+  const e2ePassword = process.env.E2E_PASSWORD
 
   if (!supabaseUrl) {
     console.error('❌ NEXT_PUBLIC_SUPABASE_URL is not set in .env.test')
@@ -37,8 +39,25 @@ async function globalTeardown() {
     throw new Error('Missing E2E_USERNAME_ID environment variable')
   }
 
-  // Create Supabase client using public/anon key
+  if (!e2eUsername || !e2ePassword) {
+    console.error('❌ E2E_USERNAME and E2E_PASSWORD must be set in .env.test')
+    throw new Error('Missing E2E_USERNAME or E2E_PASSWORD environment variable')
+  }
+
+  // Create Supabase client and authenticate as test user
   const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+
+  // Authenticate to bypass RLS policies
+  console.log('🔐 Authenticating as test user for cleanup...')
+  const { error: authError } = await supabase.auth.signInWithPassword({
+    email: e2eUsername,
+    password: e2ePassword,
+  })
+
+  if (authError) {
+    console.error('❌ Failed to authenticate:', authError.message)
+    throw new Error('Authentication failed during cleanup')
+  }
 
   try {
     // Track cleanup statistics
@@ -141,24 +160,10 @@ async function globalTeardown() {
       }
     }
 
-    // 5. Delete profile (should be done last, but RLS might prevent this with anon key)
-    console.log('🗑️  Attempting to delete profile...')
-    const { error: profileError, count: profileCount } = await supabase
-      .from('profiles')
-      .delete({ count: 'exact' })
-      .eq('user_id', e2eUserId)
-
-    if (profileError) {
-      console.warn('⚠️  Could not delete profile (RLS might prevent this with anon key):', profileError.message)
-      console.log('   ℹ️  This is expected if RLS is properly configured')
-    } else {
-      stats.profiles = profileCount || 0
-      if (stats.profiles > 0) {
-        console.log(`   ✅ Deleted ${stats.profiles} profile`)
-      } else {
-        console.log('   ℹ️  Profile was not deleted (RLS or already deleted)')
-      }
-    }
+    // 5. Skip profile deletion - profile is needed for test user authentication
+    // The profile is automatically created/managed by Supabase Auth trigger
+    console.log('ℹ️  Skipping profile deletion (profile is needed for authentication)')
+    stats.profiles = 0
 
     // Summary
     console.log('\n📊 Cleanup Summary:')
