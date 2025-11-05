@@ -33,8 +33,17 @@ STRIPE_SECRET_KEY=sk_test_...
 # Get from: Stripe Dashboard > Developers > API keys > Publishable key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
+# Stripe Pro Plan Price ID for Card payments (USD)
+# Get from: Stripe Dashboard > Products > Pro Subscription > Price ID
+STRIPE_PRICE_PRO_CARD=price_...
+
+# Stripe Pro Plan Price ID for BLIK payments (PLN)
+# Get from: Stripe Dashboard > Products > Pro Subscription > Price ID
+STRIPE_PRICE_PRO_BLIK=price_...
+
 # Stripe Webhook Secret
 # Get from: Stripe Dashboard > Developers > Webhooks > Add endpoint
+# Endpoint URL: https://yourdomain.com/api/webhooks/stripe
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
