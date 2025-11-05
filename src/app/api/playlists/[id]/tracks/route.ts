@@ -200,7 +200,8 @@ export async function POST(
     // Check for duplicates in existing tracks and get all positions (including deleted)
     const { data: existingTracks, error: existingError } = await supabase
       .from('playlist_tracks')
-      .select('track_uri, position, is_deleted');
+      .select('track_uri, position, is_deleted')
+      .eq('playlist_id', playlistId);
 
     if (existingError) {
       throw existingError;
