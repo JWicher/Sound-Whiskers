@@ -16,7 +16,7 @@ export const FEATURE_FLAGS: FeatureFlagsConfiguration = {
     generateWithAI: true,
   },
   production: {
-    generateWithAI: false, // Set to true when ready to release
+    generateWithAI: true, // Set to true when ready to release
   },
 };
 
