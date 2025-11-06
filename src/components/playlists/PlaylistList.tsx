@@ -17,7 +17,11 @@ import { EditPlaylistDialog } from './EditPlaylistDialog';
 import { PlaylistListItemDto, ListPlaylistsOptions } from '@/types';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
-export function PlaylistList() {
+interface PlaylistListProps {
+    aiGenerationEnabled?: boolean;
+}
+
+export function PlaylistList({ aiGenerationEnabled = false }: PlaylistListProps) {
     const router = useRouter();
 
     const {
@@ -122,6 +126,7 @@ export function PlaylistList() {
                             onPlaylistCreated={createPlaylist}
                             refreshPlaylists={refreshPlaylists}
                             isLoading={loading}
+                            aiGenerationEnabled={aiGenerationEnabled}
                         />
                     )}
                 </div>
@@ -238,6 +243,7 @@ export function PlaylistList() {
                                                 onPlaylistCreated={createPlaylist}
                                                 refreshPlaylists={refreshPlaylists}
                                                 isLoading={loading}
+                                                aiGenerationEnabled={aiGenerationEnabled}
                                             />
                                         </div>
                                     )}

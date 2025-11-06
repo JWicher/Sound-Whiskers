@@ -29,12 +29,14 @@ interface CreatePlaylistDialogProps {
     onPlaylistCreated: (data: CreatePlaylistCommand) => Promise<PlaylistDto>;
     refreshPlaylists: () => Promise<void>;
     isLoading?: boolean;
+    aiGenerationEnabled?: boolean;
 }
 
 export function CreatePlaylistDialog({
     onPlaylistCreated,
     refreshPlaylists,
     isLoading = false,
+    aiGenerationEnabled = false,
 }: CreatePlaylistDialogProps) {
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('manual');
@@ -149,6 +151,7 @@ export function CreatePlaylistDialog({
                     isPro={isPro}
                     manualContent={manualContent}
                     aiContent={aiContent}
+                    showAITab={aiGenerationEnabled}
                 />
             </DialogContent>
         </Dialog>

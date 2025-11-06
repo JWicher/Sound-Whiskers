@@ -12,6 +12,7 @@ interface PlaylistFormTabsProps {
     isPro: boolean;
     manualContent: ReactNode;
     aiContent: ReactNode;
+    showAITab?: boolean;
 }
 
 export function PlaylistFormTabs({
@@ -20,7 +21,13 @@ export function PlaylistFormTabs({
     isPro,
     manualContent,
     aiContent,
+    showAITab = true,
 }: PlaylistFormTabsProps) {
+    // If AI tab is disabled, render manual content only
+    if (!showAITab) {
+        return <div className="space-y-4 mt-4">{manualContent}</div>;
+    }
+
     return (
         <Tabs
             value={activeTab}

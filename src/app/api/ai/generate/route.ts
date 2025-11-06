@@ -7,6 +7,7 @@ import { handleApiError } from "@/lib/errors/handleApiError";
 import { ApiError } from "@/lib/errors/ApiError";
 import { getSpotifyAccessToken } from "@/lib/utils";
 import { checkAndDowngradeIfExpired } from "@/lib/services/profileService";
+import { requireFeature } from "@/features";
 
 // Define schemas for AI playlist generation
 const AITrackSchema = z.object({
@@ -136,6 +137,10 @@ async function filterTracksWithSpotifyVerification(
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. CHECK FEATURE FLAG
+    const guardResponse = requireFeature('generateWithAI');
+    if (guardResponse) return guardResponse;
+
     // 1. AUTHENTICATE USER
     const supabase = await createClient();
     const {
