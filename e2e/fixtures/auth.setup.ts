@@ -20,8 +20,12 @@ export const test = base.extend<{
     // Navigate to login page
     await page.goto('/auth/login', { waitUntil: 'networkidle' })
 
+    // Wait for the email field to be visible and ready before interacting
+    const emailInput = page.getByRole('textbox', { name: /email/i })
+    await emailInput.waitFor({ state: 'visible', timeout: 10000 })
+
     // Fill in credentials - use more specific selectors to avoid strict mode violations
-    await page.getByRole('textbox', { name: /email/i }).fill(email)
+    await emailInput.fill(email)
     
     // For password input, use placeholder to be more specific than label
     // This avoids conflict with "Show password" button

@@ -56,11 +56,11 @@ export function requireFeature(featureKey: FeatureFlagKey): NextResponse | null 
  * });
  * ```
  */
-export function withFeatureFlag<T extends (...args: any[]) => Promise<NextResponse>>(
+export function withFeatureFlag<T extends (...args: never[]) => Promise<NextResponse>>(
   featureKey: FeatureFlagKey,
   handler: T
 ): T {
-  return (async (...args: any[]) => {
+  return (async (...args: Parameters<T>) => {
     const guardResponse = requireFeature(featureKey);
     if (guardResponse) {
       return guardResponse;
