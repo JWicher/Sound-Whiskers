@@ -47,7 +47,8 @@ export function PlaylistList() {
         };
 
         void fetchPlaylists(options);
-    }, [debouncedSearchQuery, activeTab, sortOrder, currentPage, fetchPlaylists]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedSearchQuery, activeTab, sortOrder, currentPage]);
 
     const handleSortChange = (newSort: string) => {
         setSortOrder(newSort);

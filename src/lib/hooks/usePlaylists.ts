@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   PlaylistListDto, 
   PlaylistDto, 
@@ -40,7 +40,8 @@ export function usePlaylists(): UsePlaylistsReturn {
     error: null
   });
 
-  const [currentOptions, setCurrentOptions] = useState<ListPlaylistsOptions>(DEFAULT_OPTIONS);
+  // Use ref to avoid infinite loops - refs don't trigger re-renders
+  const currentOptionsRef = useRef<ListPlaylistsOptions>(DEFAULT_OPTIONS);
 
   const handleError = useCallback((error: unknown): string => {
     if (error instanceof Error) {
@@ -50,8 +51,8 @@ export function usePlaylists(): UsePlaylistsReturn {
   }, []);
 
   const fetchPlaylists = useCallback(async (options?: Partial<ListPlaylistsOptions>) => {
-    const mergedOptions = { ...currentOptions, ...options };
-    setCurrentOptions(mergedOptions);
+    const mergedOptions = { ...currentOptionsRef.current, ...options };
+    currentOptionsRef.current = mergedOptions;
     
     setState(prev => ({ ...prev, loading: true, error: null }));
     
@@ -80,7 +81,7 @@ export function usePlaylists(): UsePlaylistsReturn {
         error: handleError(error) 
       }));
     }
-  }, [currentOptions, handleError]);
+  }, [handleError]);
 
   const createPlaylist = useCallback(async (data: CreatePlaylistCommand): Promise<PlaylistDto> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
@@ -183,8 +184,9 @@ export function usePlaylists(): UsePlaylistsReturn {
 
   // Initial fetch on mount
   useEffect(() => {
-    fetchPlaylists();
-  }, [fetchPlaylists]);
+    void fetchPlaylists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps: only run once on mount
 
   return {
     playlists: state.playlists,
