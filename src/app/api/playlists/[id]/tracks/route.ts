@@ -230,6 +230,7 @@ export async function POST(
           { status: 409 }
         );
       }
+      existingTrackUris.add(track.trackUri);
     }
 
     // Calculate positions for new tracks
