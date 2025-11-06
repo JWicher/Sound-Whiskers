@@ -156,14 +156,19 @@ export class PlaylistService {
       throw new ApiError(500, 'INTERNAL_SERVER_ERROR', error.message);
     }
 
-    const row: any = data;
+    if (!data) {
+      throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to load playlist data');
+    }
+
+    const playlistTracks = data.playlist_tracks as Array<{ count: number | null }> | null | undefined;
+
     return {
-      id: row.id,
-      name: row.name,
-      description: row.description,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      trackCount: row.playlist_tracks?.[0]?.count ?? 0,
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      trackCount: playlistTracks?.[0]?.count ?? 0,
     };
   }
 
@@ -190,13 +195,16 @@ export class PlaylistService {
       throw new ApiError(500, 'INTERNAL_SERVER_ERROR', error.message);
     }
 
-    const row2: any = data;
+    if (!data) {
+      throw new ApiError(500, 'INTERNAL_SERVER_ERROR', 'Failed to update playlist');
+    }
+
     return {
-      id: row2.id,
-      name: row2.name,
-      description: row2.description,
-      createdAt: row2.created_at,
-      updatedAt: row2.updated_at,
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
     };
   }
 

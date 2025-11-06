@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { handleApiError } from '@/lib/errors/handleApiError';
 import { z } from 'zod';
-import type { AddTracksCommand, AddTracksResponseDto, PlaylistTrackListDto } from '@/types';
+import type { AddTracksResponseDto, PlaylistTrackListDto } from '@/types';
 import type { ReorderTracksResponseDto } from '@/types';
 
 const addTracksSchema = z.object({

@@ -163,7 +163,9 @@ export function PlaylistItem({
                     <DialogHeader>
                         <DialogTitle>Delete Playlist</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete "{playlist.name}"? This action cannot be undone.
+                            Are you sure you want to delete{' '}
+                            <span className="font-semibold">&ldquo;{playlist.name}&rdquo;</span>? This action cannot be
+                            undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

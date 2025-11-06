@@ -184,7 +184,7 @@ export function usePlaylists(): UsePlaylistsReturn {
   // Initial fetch on mount
   useEffect(() => {
     fetchPlaylists();
-  }, []);
+  }, [fetchPlaylists]);
 
   return {
     playlists: state.playlists,

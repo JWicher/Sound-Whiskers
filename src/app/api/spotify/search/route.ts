@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
         ),
       ]);
     } catch (error) {
+      console.error('Spotify authentication failed in search route', error);
       throw new ApiError(
         502,
         'UPSTREAM_ERROR',
@@ -100,6 +101,7 @@ export async function GET(request: NextRequest) {
         ),
       ]);
     } catch (error) {
+      console.error('Spotify search request timed out or failed', error);
       throw new ApiError(504, 'TIMEOUT', 'Spotify search timed out');
     }
 

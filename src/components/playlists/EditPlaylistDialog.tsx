@@ -24,7 +24,6 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PlaylistListItemDto } from '@/types';
 
 const editPlaylistSchema = z.object({
     name: z.string().min(1, 'Playlist name is required').max(100, 'Name too long'),

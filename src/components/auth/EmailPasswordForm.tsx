@@ -1,9 +1,10 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import type { ReactNode } from 'react';
+import { useForm, type FieldValues, type DefaultValues, type Path, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,17 +19,38 @@ import {
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from './PasswordInput';
 
-interface EmailPasswordFormProps {
-    schema: z.ZodType<any, any, any>;
-    onSubmit: (data: any) => Promise<void>;
+type EmailPasswordFields = {
+    email: string;
+    password: string;
+    passwordConfirm?: string;
+};
+
+/**
+ * Helper to create a properly typed resolver for zodResolver
+ * 
+ * This bridges the gap between Zod's schema types and React Hook Form's Resolver type.
+ * The type assertion through 'unknown' is necessary because zodResolver's generic constraints
+ * in @hookform/resolvers/zod don't support the generic pattern we need here, even though
+ * the runtime behavior is correct and type-safe at the call site.
+ */
+function createResolver<TValues extends FieldValues>(
+    schema: z.ZodSchema<TValues>
+): Resolver<TValues> {
+    // Wrap zodResolver call to bypass type checking limitations with generic schemas
+    return (zodResolver as (schema: z.ZodSchema<TValues>) => Resolver<TValues>)(schema);
+}
+
+interface EmailPasswordFormProps<TValues extends EmailPasswordFields & FieldValues> {
+    schema: z.ZodSchema<TValues>;
+    onSubmit: (data: TValues) => Promise<void>;
     submitLabel: string;
     isSubmitting?: boolean;
     showPasswordConfirm?: boolean;
     showPasswordHints?: boolean;
-    children?: React.ReactNode;
+    children?: ReactNode;
 }
 
-export function EmailPasswordForm({
+export function EmailPasswordForm<TValues extends EmailPasswordFields & FieldValues>({
     schema,
     onSubmit,
     submitLabel,
@@ -36,17 +58,19 @@ export function EmailPasswordForm({
     showPasswordConfirm = false,
     showPasswordHints = false,
     children,
-}: EmailPasswordFormProps) {
-    const form = useForm({
-        resolver: zodResolver(schema),
+}: EmailPasswordFormProps<TValues>) {
+    const resolver = createResolver(schema);
+
+    const form = useForm<TValues>({
+        resolver,
         defaultValues: {
             email: '',
             password: '',
             passwordConfirm: '',
-        },
+        } as DefaultValues<TValues>,
     });
 
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: TValues) => {
         await onSubmit(data);
     };
 
@@ -55,7 +79,7 @@ export function EmailPasswordForm({
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                 <FormField
                     control={form.control}
-                    name="email"
+                    name={"email" as Path<TValues>}
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Email</FormLabel>
@@ -75,7 +99,7 @@ export function EmailPasswordForm({
 
                 <FormField
                     control={form.control}
-                    name="password"
+                    name={"password" as Path<TValues>}
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Password</FormLabel>
@@ -101,7 +125,7 @@ export function EmailPasswordForm({
                 {showPasswordConfirm && (
                     <FormField
                         control={form.control}
-                        name="passwordConfirm"
+                        name={"passwordConfirm" as Path<TValues>}
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Confirm Password</FormLabel>

@@ -225,6 +225,7 @@ export async function POST(request: NextRequest) {
         ),
       ]);
     } catch (error) {
+      console.error('Spotify authentication failed during AI generation', error);
       throw new ApiError(
         502,
         "Failed to authenticate with Spotify",
@@ -233,7 +234,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. GENERATE PLAYLISTS AND COLLECT VALID TRACKS
-    let allValidTracks: z.infer<typeof AITrackSchema>[] = [];
+    const allValidTracks: z.infer<typeof AITrackSchema>[] = [];
     let totalCost = 0;
     let totalTokens = 0;
     let generatedPlaylist: z.infer<typeof AIPlaylistSchema> | null = null;

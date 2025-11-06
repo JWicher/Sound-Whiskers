@@ -38,48 +38,24 @@ export function PlaylistList() {
     const [activeTab, setActiveTab] = useState<'active' | 'deleted'>('active');
     const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-    const handleSearch = async () => {
-        setCurrentPage(1);
-
+    useEffect(() => {
         const options: Partial<ListPlaylistsOptions> = {
-            page: 1,
+            page: currentPage,
             search: debouncedSearchQuery || undefined,
             sort: sortOrder,
             isDeleted: activeTab === 'deleted'
         };
 
-        await fetchPlaylists(options);
-    };
+        void fetchPlaylists(options);
+    }, [debouncedSearchQuery, activeTab, sortOrder, currentPage, fetchPlaylists]);
 
-    useEffect(() => {
-        handleSearch();
-    }, [debouncedSearchQuery, activeTab]);
-
-    const handleSortChange = async (newSort: string) => {
+    const handleSortChange = (newSort: string) => {
         setSortOrder(newSort);
         setCurrentPage(1);
-
-        const options: Partial<ListPlaylistsOptions> = {
-            page: 1,
-            search: searchQuery || undefined,
-            sort: newSort,
-            isDeleted: activeTab === 'deleted'
-        };
-
-        await fetchPlaylists(options);
     };
 
-    const handlePageChange = async (page: number) => {
+    const handlePageChange = (page: number) => {
         setCurrentPage(page);
-
-        const options: Partial<ListPlaylistsOptions> = {
-            page,
-            search: searchQuery || undefined,
-            sort: sortOrder,
-            isDeleted: activeTab === 'deleted'
-        };
-
-        await fetchPlaylists(options);
     };
 
     const handleTabChange = (tab: 'active' | 'deleted') => {
@@ -170,7 +146,10 @@ export function PlaylistList() {
                                     <Input
                                         placeholder="Search playlists..."
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
                                         className="pl-10"
                                     />
                                 </div>

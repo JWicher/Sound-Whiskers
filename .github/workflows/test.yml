@@ -7,8 +7,29 @@ on:
     branches: [main, develop]
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
   unit-tests:
     name: Unit & Integration Tests
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:
@@ -48,6 +69,7 @@ jobs:
 
   e2e-tests:
     name: E2E Tests
+    needs: lint
     runs-on: ubuntu-latest
     environment: integration
 
