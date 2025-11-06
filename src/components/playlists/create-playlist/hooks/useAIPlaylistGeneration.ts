@@ -33,7 +33,9 @@ export function useAIPlaylistGeneration({ isPro }: UseAIPlaylistGenerationOption
                     const errorData = await response.json().catch(() => null);
                     if (errorData?.code === 'PRO_PLAN_REQUIRED') {
                         toast.error('This feature requires a PRO plan. Please upgrade.');
-                        return;
+
+                        throw new Error('This feature requires a PRO plan. Please upgrade.');
+
                     }
                 }
 
@@ -41,7 +43,9 @@ export function useAIPlaylistGeneration({ isPro }: UseAIPlaylistGenerationOption
                     toast.error(
                         'Monthly AI generation quota exceeded. Please upgrade or wait until next month.',
                     );
-                    return;
+
+                    throw new Error('Monthly AI generation quota exceeded');
+
                 }
 
                 if (!response.ok) {
@@ -74,11 +78,13 @@ export function useAIPlaylistGeneration({ isPro }: UseAIPlaylistGenerationOption
     }, []);
 
     const isGenerating = useMemo(() => status === 'generating', [status]);
-
+    const isPreviewing = useMemo(() => status === 'preview', [status]);
+    
     return {
         status,
         preview,
         isGenerating,
+        isPreviewing,
         generatePlaylist,
         reset,
     };

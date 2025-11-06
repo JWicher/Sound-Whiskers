@@ -47,7 +47,7 @@ export function CreatePlaylistDialog({
     const isPro = profile?.plan === 'pro';
 
     const { isCreating, createPlaylist } = usePlaylistCreation({ onPlaylistCreated });
-    const { preview, isGenerating, generatePlaylist, reset } = useAIPlaylistGeneration({ isPro });
+    const { preview, isPreviewing, isGenerating, generatePlaylist, reset } = useAIPlaylistGeneration({ isPro });
 
     const resetDialogForms = useCallback(() => {
         reset();
@@ -67,12 +67,14 @@ export function CreatePlaylistDialog({
     });
 
     const isBusy = useMemo(
-        () => isCreating || isGenerating || isApproving,
-        [isApproving, isCreating, isGenerating],
+        () => isCreating || isGenerating || isApproving || isPreviewing,
+        [isApproving, isCreating, isGenerating, isPreviewing],
     );
 
     const handleOpenChange = (newOpen: boolean) => {
-        if (!newOpen && isBusy) {
+        // Prevent closing when AI operations are in progress or preview is waiting
+        if (!newOpen && (isBusy)) {
+            toast.info('Please approve or reject the AI playlist before closing');
             return;
         }
 
@@ -137,7 +139,16 @@ export function CreatePlaylistDialog({
                     Create Playlist
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[650px]">
+            <DialogContent
+                className="sm:max-w-[650px]"
+                onInteractOutside={(e) => {
+                    // Prevent closing when AI operations are in progress or preview is waiting
+                    if (isBusy || preview) {
+                        e.preventDefault();
+                        toast.info('Please approve or reject the AI playlist before closing');
+                    }
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle>Create New Playlist</DialogTitle>
                     <DialogDescription>
