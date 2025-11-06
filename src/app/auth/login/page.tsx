@@ -41,6 +41,7 @@ export default function LoginPage() {
 
             router.push('/playlists');
         } catch (error) {
+            console.error('Password login failed', error);
             toast.error('An error occurred. Please try again.');
         } finally {
             setIsSubmitting(false);
@@ -66,6 +67,7 @@ export default function LoginPage() {
             setSentEmail(data.email);
             setMagicLinkSent(true);
         } catch (error) {
+            console.error('Magic link request failed', error);
             toast.error('An error occurred. Please try again.');
         } finally {
             setIsSubmitting(false);

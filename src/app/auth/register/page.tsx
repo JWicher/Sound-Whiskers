@@ -41,6 +41,7 @@ export default function RegisterPage() {
             setEmailSent(true);
             toast.success('Account created! Please check your email.');
         } catch (error) {
+            console.error('User registration failed', error);
             toast.error('An error occurred. Please try again.');
         } finally {
             setIsSubmitting(false);

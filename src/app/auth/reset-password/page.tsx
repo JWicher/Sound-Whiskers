@@ -103,6 +103,7 @@ export default function ResetPasswordPage() {
             router.refresh();
             router.push('/auth/login');
         } catch (error) {
+            console.error('Password reset submission failed', error);
             toast.error('An error occurred. Please try again.');
         } finally {
             setIsSubmitting(false);
