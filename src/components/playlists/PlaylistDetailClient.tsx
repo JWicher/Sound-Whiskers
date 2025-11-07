@@ -185,9 +185,9 @@ export function PlaylistDetailClient({ id }: PlaylistDetailClientProps) {
     const displayTracks = modifiedTracks || tracks;
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col h-full space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-shrink-0">
                 <Button
                     variant="outline"
                     size="sm"
@@ -198,19 +198,21 @@ export function PlaylistDetailClient({ id }: PlaylistDetailClientProps) {
             </div>
 
             {/* Title and export button */}
-            <PlaylistHeader
-                playlistName={playlist.name}
-                trackCount={trackCount}
-                onExportClick={() => setShowExportDialog(true)}
-                isLoading={loading}
-                isLoadingTracks={loadingTracks}
-                disableExport={!playlist}
-            />
+            <div className="flex-shrink-0">
+                <PlaylistHeader
+                    playlistName={playlist.name}
+                    trackCount={trackCount}
+                    onExportClick={() => setShowExportDialog(true)}
+                    isLoading={loading}
+                    isLoadingTracks={loadingTracks}
+                    disableExport={!playlist}
+                />
+            </div>
 
             {/* Main content grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
                 {/* Left column - Metadata and actions */}
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 overflow-y-auto">
                     <PlaylistMetaSection
                         playlist={playlist}
                         isLoading={loading}
@@ -222,24 +224,28 @@ export function PlaylistDetailClient({ id }: PlaylistDetailClientProps) {
                 </div>
 
                 {/* Right column - Track list */}
-                <div className="lg:col-span-2 space-y-4">
+                <div className="lg:col-span-2 flex flex-col space-y-4 min-h-0">
                     {/* Unsaved changes bar */}
                     {hasUnsavedChanges && (
-                        <UnsavedChangesBar
-                            isVisible={hasUnsavedChanges}
-                            isSaving={isSavingOrder}
-                            onSaveOrder={handleSaveOrder}
-                            onDiscardChanges={handleDiscardChanges}
-                        />
+                        <div className="flex-shrink-0">
+                            <UnsavedChangesBar
+                                isVisible={hasUnsavedChanges}
+                                isSaving={isSavingOrder}
+                                onSaveOrder={handleSaveOrder}
+                                onDiscardChanges={handleDiscardChanges}
+                            />
+                        </div>
                     )}
 
                     {/* Track list */}
-                    <ReorderableTrackList
-                        tracks={displayTracks}
-                        isLoading={loadingTracks}
-                        onDragEnd={handleDragEnd}
-                        onRemoveTrack={handleRemoveTrackClick}
-                    />
+                    <div className="flex-1 min-h-0 overflow-y-auto">
+                        <ReorderableTrackList
+                            tracks={displayTracks}
+                            isLoading={loadingTracks}
+                            onDragEnd={handleDragEnd}
+                            onRemoveTrack={handleRemoveTrackClick}
+                        />
+                    </div>
                 </div>
             </div>
 

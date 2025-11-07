@@ -15,7 +15,7 @@ export default async function PlaylistDetailPage({ params }: PageProps) {
     if (!user) redirect('/auth/login');
 
     return (
-        <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8 h-[calc(100vh-4rem)] flex flex-col">
             <PlaylistDetailClient id={params.id} />
         </div>
     );

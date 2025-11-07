@@ -155,7 +155,7 @@ export function ReorderableTrackList({
     }
 
     return (
-        <Card className="p-0">
+        <Card className="p-0 h-full">
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
